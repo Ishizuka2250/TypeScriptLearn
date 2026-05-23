@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TypeScript / Next.js 学習カリキュラム</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;700&family=Space+Grotesk:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="bg-grid" aria-hidden="true"></div>
+    <header class="hero">
+      <p class="eyebrow">Inventory Project Readiness Plan</p>
+      <h1>TypeScript / Next.js 学習カリキュラム</h1>
+      <p class="subtitle">
+        7月以降の小規模在庫管理システム案件に向けた、1〜2か月の実装重視プログラム
+      </p>
+      <div class="meta-row">
+        <span id="today"></span>
+        <span>想定学習: 平日 1.5〜2h / 休日 3〜4h</span>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="card">
+        <h2>現在地サマリ</h2>
+        <ul class="plain-list">
+          <li>Laravel/PHP 実務 3年、HTML/JavaScript 実務 3年</li>
+          <li>DB基礎、Linux基礎、ネットワーク基礎を保有</li>
+          <li>強化ポイント: TypeScript型設計、Next.js App Router、テスト自動化</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>フォルダ構成ガイド</h2>
+        <ul class="plain-list">
+          <li><strong>dashboard/</strong>: 進捗確認画面（このページ一式）</li>
+          <li><strong>plans/</strong>: 長期で参照する学習計画とスキル棚卸し</li>
+          <li><strong>assessments/</strong>: 診断結果、4週間の進捗共有ログ</li>
+          <li><strong>exercises/</strong>: 日次演習問題と解答・解説</li>
+        </ul>
+        <ul class="plain-list">
+          <li>毎日の学習記録は assessments/4week-personalized-schedule.md に追記</li>
+          <li>Day1演習は exercises/day1-js-exercises.md を実施</li>
+          <li>必要時に plans/ の内容を更新し、学習方針を見直す</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <div class="plan-head">
+          <h2>プラン選択</h2>
+          <div class="switch" role="group" aria-label="プラン選択">
+            <button id="plan4" class="active" type="button">1か月（4週間）</button>
+            <button id="plan8" type="button">2か月（8週間）</button>
+          </div>
+        </div>
+
+        <div class="progress-wrap">
+          <label for="progressBar">進捗</label>
+          <progress id="progressBar" value="0" max="100"></progress>
+          <p id="progressText">0%</p>
+        </div>
+
+        <div id="timeline" class="timeline"></div>
+      </section>
+
+      <section class="card">
+        <h2>最終到達基準</h2>
+        <ul class="plain-list">
+          <li>TypeScript strictで主要機能を実装できる</li>
+          <li>Next.js App RouterでCRUD + 認証 + DB連携ができる</li>
+          <li>テスト・エラーハンドリング・設計意図を説明できる</li>
+          <li>在庫管理シナリオを分解し、自走で機能追加できる</li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>
+        保存先: plans/ / assessments/ / exercises/ / dashboard/
+      </p>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>
