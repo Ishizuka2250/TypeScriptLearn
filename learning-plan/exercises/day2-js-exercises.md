@@ -163,7 +163,22 @@ const items = [
 
 ### A7
 
+```
+const items = [
+  { name: "pen",   category: "stationery" },
+  { name: "note",  category: "stationery" },
+  { name: "mug",   category: "kitchen"    },
+  { name: "plate", category: "kitchen"    },
+];
 
+const result = items.reduce((acc,cur) => {
+    if (acc[cur.category] == null) acc[cur.category] = [cur.name];
+    acc[cur.category].push(cur.name);
+    return acc;
+},{});
+
+console.log(result);
+```
 
 ### Q8
 以下の配列から、在庫数が最も多い商品を `reduce` で見つけてください（`Math.max` や `sort` は使わないこと）。
@@ -183,7 +198,20 @@ const stocks = [
 ```
 
 ### A8
+```
+const stocks = [
+  { sku: "A", qty: 10 },
+  { sku: "B", qty: 25 },
+  { sku: "C", qty: 7  },
+];
 
+const result = stocks.reduce((acc,cur) => {
+    return acc.qty < cur.qty ? {sku: cur.sku, qty: cur.qty} : acc;
+}, {sku:'', qty:0});
+
+
+console.log(result);
+```
 
 
 ### Q9
@@ -206,8 +234,24 @@ const movements = [
 ```
 
 ### A9
+```
+const movements = [
+  { sku: "A", type: "in",  qty: 100 },
+  { sku: "B", type: "in",  qty: 50  },
+  { sku: "A", type: "out", qty: 30  },
+  { sku: "B", type: "out", qty: 20  },
+  { sku: "A", type: "in",  qty: 10  },
+];
 
+const result = movements.reduce((acc, cur) => {
+    if (acc[cur.sku] == null) acc[cur.sku] = 0;
+    acc[cur.sku] += cur.type === 'in' ? cur.qty : -cur.qty;
+    console.log(`${cur.sku} ${acc[cur.sku]}`);
+    return acc;
+},{});
 
+console.log(result);
+```
 
 ---
 
