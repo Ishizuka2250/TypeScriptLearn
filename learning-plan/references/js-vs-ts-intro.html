@@ -316,6 +316,58 @@
         </tbody>
       </table>
     </div>
+
+    <h3 style="margin-top:1.25rem;">制御構文は JavaScript と完全に同じ</h3>
+    <p style="font-size:0.9rem; color:var(--muted); margin-bottom:0.75rem;">
+      <code>if</code> / <code>for</code> / <code>while</code> / <code>async&nbsp;await</code> などの制御構文は JavaScript と一切変わりません。TypeScript は JavaScript を<strong>拡張</strong>したものであり、既存の構文はそのまま使えます。
+    </p>
+    <div class="code-block" style="margin-bottom:1rem;">
+      <div class="code-header code-header-ts"><span class="code-header-dot"></span>制御構文は JS と同じ — 型注釈だけが TypeScript 固有</div>
+      <pre><code><span class="comment">// 制御構文: JS と全く同じ</span>
+<span class="kw">for</span> (<span class="kw">const</span> item <span class="kw">of</span> items) {
+  <span class="kw">if</span> (item.qty &lt; <span class="num">10</span>) {
+    console.log(item.name);
+  }
+}
+
+<span class="comment">// TypeScript 固有: 型注釈（: の右側）</span>
+<span class="kw">const</span> qty<span class="type-ann">: number</span> = <span class="num">10</span>;            <span class="comment">// ← : number が TS 固有</span>
+<span class="kw">interface</span> <span class="type-ann">Item</span> { name<span class="type-ann">: string</span>; }  <span class="comment">// ← interface 宣言が TS 固有</span></code></pre>
+    </div>
+
+    <h3>TypeScript で新しく覚えることは3つだけ</h3>
+    <div class="card" style="margin-bottom:0;">
+      <table class="diff-table">
+        <thead>
+          <tr>
+            <th style="color:var(--ts-light);">追加される構文</th>
+            <th style="color:var(--muted); width:auto;">例</th>
+            <th style="color:var(--muted);">用途</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>型注釈</td>
+            <td><code>qty: number</code></td>
+            <td>変数・引数・戻り値に型を付ける</td>
+          </tr>
+          <tr>
+            <td>型定義</td>
+            <td><code>interface Item { ... }</code> / <code>type MovementType = "in" | "out"</code></td>
+            <td>オブジェクト構造やユニオン型を定義する</td>
+          </tr>
+          <tr>
+            <td>ジェネリクス</td>
+            <td><code>Array&lt;Item&gt;</code> / <code>Promise&lt;Stock&gt;</code></td>
+            <td>型を引数として受け取る汎用的な型</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout callout-tip" style="margin-top:0.75rem;">
+      <span class="callout-icon">✅</span>
+      <div>「JavaScript が書ければ TypeScript も8割は書ける」と言われる理由はここにあります。Day3 では残り2割（型の書き方）を集中して習得します。</div>
+    </div>
   </section>
 
   <!-- 3. 型注釈 -->
