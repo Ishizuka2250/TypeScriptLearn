@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JavaScript vs TypeScript 導入ガイド</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #222534;
+      --border: #2e3147;
+      --text: #e2e4ef;
+      --muted: #7b7f9e;
+      --js: #f7df1e;
+      --ts: #3178c6;
+      --ts-light: #5ba0e8;
+      --green: #4ade80;
+      --red: #f87171;
+      --orange: #fb923c;
+      --purple: #a78bfa;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      padding: 2rem 1rem 6rem;
+    }
+
+    .container { max-width: 900px; margin: 0 auto; }
+
+    /* Header */
+    .hero {
+      text-align: center;
+      padding: 3rem 0 2.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 3rem;
+    }
+    .hero-badges {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .badge {
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.3rem 0.9rem;
+      border-radius: 99px;
+      letter-spacing: 0.05em;
+    }
+    .badge-js { background: var(--js); color: #111; }
+    .badge-ts { background: var(--ts); color: #fff; }
+    .hero h1 { font-size: 2rem; font-weight: 800; margin-bottom: 0.75rem; }
+    .hero p { color: var(--muted); font-size: 1rem; }
+
+    /* Section */
+    section { margin-bottom: 3rem; }
+    h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 1.25rem;
+      padding-left: 0.75rem;
+      border-left: 3px solid var(--ts);
+    }
+    h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--ts-light); }
+
+    /* Card */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    /* Diff table */
+    .diff-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    .diff-table th {
+      padding: 0.6rem 1rem;
+      text-align: left;
+      font-weight: 700;
+      font-size: 0.8rem;
+      letter-spacing: 0.06em;
+      border-bottom: 1px solid var(--border);
+    }
+    .diff-table th:first-child { color: var(--js); }
+    .diff-table th:last-child  { color: var(--ts-light); }
+    .diff-table th:nth-child(2) { color: var(--muted); width: 160px; }
+    .diff-table td { padding: 0.7rem 1rem; vertical-align: top; border-bottom: 1px solid var(--border); }
+    .diff-table tr:last-child td { border-bottom: none; }
+    .diff-table td:nth-child(2) { color: var(--muted); font-size: 0.85rem; }
+
+    /* Code comparison */
+    .compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    @media (max-width: 640px) { .compare { grid-template-columns: 1fr; } }
+
+    .code-block {
+      border-radius: 8px;
+      overflow: hidden;
+      font-size: 0.82rem;
+    }
+    .code-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.9rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+    .code-header-js { background: #2a270a; color: var(--js); }
+    .code-header-ts { background: #0d1f35; color: var(--ts-light); }
+    .code-header-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: currentColor; opacity: 0.7;
+    }
+    pre {
+      background: var(--surface2);
+      padding: 1rem;
+      overflow-x: auto;
+      margin: 0;
+    }
+    code { font-family: 'SF Mono', 'Fira Code', Consolas, monospace; }
+
+    /* Inline code */
+    p code, li code, td code {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 0.1em 0.4em;
+      border-radius: 4px;
+      font-size: 0.85em;
+    }
+
+    /* Callout */
+    .callout {
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+    }
+    .callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 0.1rem; }
+    .callout-info  { background: #0d1f35; border: 1px solid #1d3a5c; }
+    .callout-tip   { background: #0e2218; border: 1px solid #1a4a2e; }
+    .callout-warn  { background: #281a08; border: 1px solid #4d3010; }
+
+    /* Key concept chip */
+    .chip {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.15rem 0.6rem;
+      border-radius: 99px;
+      margin-right: 0.3rem;
+      margin-bottom: 0.3rem;
+    }
+    .chip-green  { background: #0e2218; color: var(--green);  border: 1px solid #1a4a2e; }
+    .chip-blue   { background: #0d1f35; color: var(--ts-light); border: 1px solid #1d3a5c; }
+    .chip-purple { background: #1c1535; color: var(--purple); border: 1px solid #352860; }
+    .chip-orange { background: #28180a; color: var(--orange); border: 1px solid #4d2e10; }
+
+    /* Error annotation */
+    .err { color: var(--red); }
+    .ok  { color: var(--green); }
+    .comment { color: #6b7280; }
+    .kw  { color: #c792ea; }
+    .str { color: #c3e88d; }
+    .num { color: #f78c6c; }
+    .fn  { color: #82aaff; }
+    .type-ann { color: var(--ts-light); }
+
+    /* Divider */
+    hr { border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }
+
+    ul { padding-left: 1.4rem; }
+    li { margin-bottom: 0.4rem; }
+
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+    }
+    .flow-step {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.4rem 0.9rem;
+      font-weight: 600;
+    }
+    .flow-arrow { color: var(--muted); font-size: 1.2rem; }
+    .flow-step-ts { border-color: var(--ts); color: var(--ts-light); }
+    .flow-step-js { border-color: var(--js); color: var(--js); }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 0.75rem;
+    }
+    .summary-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+    .summary-item .label { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.3rem; }
+    .summary-item .value { font-size: 0.9rem; font-weight: 600; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-badges">
+      <span class="badge badge-js">JavaScript</span>
+      <span style="color: var(--muted); align-self:center;">vs</span>
+      <span class="badge badge-ts">TypeScript</span>
+    </div>
+    <h1>Day3 導入ガイド</h1>
+    <p>TypeScript が JavaScript に何を加えるのか、コードで理解する。</p>
+  </div>
+
+  <!-- 1. TypeScript とは -->
+  <section>
+    <h2>1. TypeScript とは</h2>
+    <div class="card">
+      <p style="margin-bottom:0.75rem;">
+        TypeScript は <strong>JavaScript のスーパーセット</strong>です。
+        すべての JavaScript コードはそのまま TypeScript として動作します。
+        TypeScript が加えるのは主に <strong>静的型システム</strong> です。
+      </p>
+      <div class="flow">
+        <div class="flow-step flow-step-ts">.ts ファイル</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">tsc（コンパイラ）</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step flow-step-js">.js ファイル</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">Node.js / ブラウザ</div>
+      </div>
+      <p style="color: var(--muted); font-size:0.85rem;">
+        実行されるのは変換後の JavaScript です。型情報はコンパイル時にのみ存在し、実行時には消えます。
+      </p>
+    </div>
+    <div class="callout callout-info">
+      <span class="callout-icon">💡</span>
+      <div>PHP と比べると: PHP も型宣言を書かなくても動きます（動的型）。TypeScript は PHP の <code>strict_types=1</code> を強制した状態に近いイメージです。ただし TypeScript の型はあくまで<strong>コンパイル時の検査</strong>で、実行時の保証ではありません。</div>
+    </div>
+  </section>
+
+  <!-- 2. 主な違い -->
+  <section>
+    <h2>2. JavaScript との主な違い</h2>
+    <div class="card" style="padding: 0; overflow: hidden;">
+      <table class="diff-table">
+        <thead>
+          <tr>
+            <th>項目</th>
+            <th>観点</th>
+            <th>JavaScript</th>
+            <th>TypeScript</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>型付け</td>
+            <td>いつ検査するか</td>
+            <td>動的（実行時）</td>
+            <td>静的（コンパイル時）</td>
+          </tr>
+          <tr>
+            <td>型注釈</td>
+            <td>書き方</td>
+            <td>なし</td>
+            <td><code>変数: 型</code> で明示</td>
+          </tr>
+          <tr>
+            <td>インターフェース</td>
+            <td>オブジェクト構造の定義</td>
+            <td>なし（JSDoc のみ）</td>
+            <td><code>interface</code> / <code>type</code></td>
+          </tr>
+          <tr>
+            <td>エラー検出</td>
+            <td>タイミング</td>
+            <td>実行して初めてわかる</td>
+            <td>エディタ上でリアルタイム</td>
+          </tr>
+          <tr>
+            <td>ファイル拡張子</td>
+            <td>—</td>
+            <td><code>.js</code> / <code>.mjs</code></td>
+            <td><code>.ts</code> / <code>.tsx</code>（JSX含む）</td>
+          </tr>
+          <tr>
+            <td>実行方法</td>
+            <td>—</td>
+            <td>そのまま Node.js で実行</td>
+            <td>コンパイルしてから実行（または ts-node）</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 3. 型注釈 -->
+  <section>
+    <h2>3. 型注釈の基本構文</h2>
+
+    <h3>変数・関数の引数・戻り値</h3>
+    <div class="compare">
+      <div class="code-block">
+        <div class="code-header code-header-js"><span class="code-header-dot"></span>JavaScript</div>
+        <pre><code><span class="comment">// 型の記述なし</span>
+<span class="kw">let</span> qty = <span class="num">10</span>;
+<span class="kw">let</span> name = <span class="str">"ペン"</span>;
+
+<span class="kw">function</span> <span class="fn">calcTotal</span>(price, count) {
+  <span class="kw">return</span> price * count;
+}
+
+<span class="comment">// 誤った使い方でも実行まで気づかない</span>
+<span class="fn">calcTotal</span>(<span class="str">"100"</span>, <span class="num">5</span>); <span class="comment">// "1005050..." になる</span></code></pre>
+      </div>
+      <div class="code-block">
+        <div class="code-header code-header-ts"><span class="code-header-dot"></span>TypeScript</div>
+        <pre><code><span class="comment">// : 型 で注釈を付ける</span>
+<span class="kw">let</span> qty<span class="type-ann">: number</span> = <span class="num">10</span>;
+<span class="kw">let</span> name<span class="type-ann">: string</span> = <span class="str">"ペン"</span>;
+
+<span class="kw">function</span> <span class="fn">calcTotal</span>(
+  price<span class="type-ann">: number</span>,
+  count<span class="type-ann">: number</span>
+)<span class="type-ann">: number</span> {
+  <span class="kw">return</span> price * count;
+}
+
+<span class="comment">// コンパイルエラー（エディタで赤線）</span>
+<span class="fn">calcTotal</span>(<span class="err">"100"</span>, <span class="num">5</span>); <span class="err">// Error: string は number に渡せない</span></code></pre>
+      </div>
+    </div>
+
+    <h3>プリミティブ型の一覧</h3>
+    <div class="card">
+      <div>
+        <span class="chip chip-blue"><code>string</code></span>
+        <span class="chip chip-blue"><code>number</code></span>
+        <span class="chip chip-blue"><code>boolean</code></span>
+        <span class="chip chip-blue"><code>null</code></span>
+        <span class="chip chip-blue"><code>undefined</code></span>
+        <span class="chip chip-purple"><code>any</code> — 型チェック無効（使用は最小限に）</span>
+        <span class="chip chip-purple"><code>unknown</code> — any より安全な型不明</span>
+        <span class="chip chip-orange"><code>void</code> — 戻り値なし関数</span>
+        <span class="chip chip-orange"><code>never</code> — 到達しないパス</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. interface / type -->
+  <section>
+    <h2>4. interface と type — オブジェクトの型定義</h2>
+
+    <div class="callout callout-info">
+      <span class="callout-icon">📦</span>
+      <div>在庫管理で扱う <strong>商品</strong>・<strong>在庫</strong>・<strong>入出庫</strong> などのデータ構造を TypeScript の型として表現します。PHP の class に型注釈を付けたものに近いイメージです。</div>
+    </div>
+
+    <div class="compare">
+      <div class="code-block">
+        <div class="code-header code-header-ts"><span class="code-header-dot"></span>interface — 拡張しやすい</div>
+        <pre><code><span class="kw">interface</span> <span class="type-ann">Item</span> {
+  id<span class="type-ann">: number</span>;
+  name<span class="type-ann">: string</span>;
+  category<span class="type-ann">: string</span>;
+  price<span class="type-ann">: number</span>;
+}
+
+<span class="comment">// extends で拡張できる</span>
+<span class="kw">interface</span> <span class="type-ann">ItemWithStock</span> <span class="kw">extends</span> <span class="type-ann">Item</span> {
+  qty<span class="type-ann">: number</span>;
+}
+
+<span class="kw">const</span> pen<span class="type-ann">: ItemWithStock</span> = {
+  id: <span class="num">1</span>,
+  name: <span class="str">"ペン"</span>,
+  category: <span class="str">"文具"</span>,
+  price: <span class="num">120</span>,
+  qty: <span class="num">50</span>,
+};</code></pre>
+      </div>
+      <div class="code-block">
+        <div class="code-header code-header-ts"><span class="code-header-dot"></span>type — ユニオン型など柔軟な定義</div>
+        <pre><code><span class="kw">type</span> <span class="type-ann">MovementType</span> = <span class="str">"in"</span> | <span class="str">"out"</span>;
+<span class="comment">// "in" か "out" の文字列のみ許可</span>
+
+<span class="kw">type</span> <span class="type-ann">StockMovement</span> = {
+  sku<span class="type-ann">: string</span>;
+  type<span class="type-ann">: MovementType</span>;
+  qty<span class="type-ann">: number</span>;
+};
+
+<span class="kw">const</span> m<span class="type-ann">: StockMovement</span> = {
+  sku: <span class="str">"A"</span>,
+  type: <span class="str">"in"</span>,
+  qty: <span class="num">100</span>,
+};
+
+<span class="comment">// コンパイルエラー</span>
+m.type = <span class="err">"invalid"</span>; <span class="err">// Error!</span></code></pre>
+      </div>
+    </div>
+
+    <div class="callout callout-tip">
+      <span class="callout-icon">✅</span>
+      <div><strong>interface vs type どちらを使う？</strong><br>
+      オブジェクト型の定義には <code>interface</code>、ユニオン型（<code>"in" | "out"</code>）や型の組み合わせには <code>type</code> を使うのが一般的なルールです。迷ったら <code>interface</code> から始めて問題ありません。</div>
+    </div>
+  </section>
+
+  <!-- 5. よくある型エラー -->
+  <section>
+    <h2>5. よくある型エラー パターン</h2>
+
+    <h3>パターン1: null / undefined のアクセス</h3>
+    <div class="compare">
+      <div class="code-block">
+        <div class="code-header code-header-js"><span class="code-header-dot"></span>JavaScript（実行時エラー）</div>
+        <pre><code><span class="kw">const</span> item = findItem(<span class="num">99</span>); <span class="comment">// 存在しない</span>
+<span class="comment">// item = undefined</span>
+
+console.log(item.name);
+<span class="comment">// 実行してみて初めてクラッシュ</span>
+<span class="err">// TypeError: Cannot read properties</span>
+<span class="err">// of undefined (reading 'name')</span></code></pre>
+      </div>
+      <div class="code-block">
+        <div class="code-header code-header-ts"><span class="code-header-dot"></span>TypeScript（コンパイル時に検出）</div>
+        <pre><code><span class="kw">function</span> <span class="fn">findItem</span>(id<span class="type-ann">: number</span>)<span class="type-ann">: Item | undefined</span> {
+  <span class="kw">return</span> items.find(i => i.id === id);
+}
+
+<span class="kw">const</span> item = <span class="fn">findItem</span>(<span class="num">99</span>);
+
+console.log(item<span class="err">.name</span>);
+<span class="err">// Error: 'item' is possibly 'undefined'</span>
+
+<span class="comment">// 修正: 存在チェックを強制される</span>
+<span class="kw">if</span> (item) console.log(item.name); <span class="ok">// OK</span></code></pre>
+      </div>
+    </div>
+
+    <h3>パターン2: 配列の要素型</h3>
+    <div class="compare">
+      <div class="code-block">
+        <div class="code-header code-header-js"><span class="code-header-dot"></span>JavaScript</div>
+        <pre><code><span class="kw">const</span> skus = [<span class="str">"A"</span>, <span class="str">"B"</span>, <span class="str">"C"</span>];
+
+<span class="comment">// 誤った型を入れても気づかない</span>
+skus.push(<span class="num">123</span>);    <span class="comment">// 動いてしまう</span>
+skus.push(<span class="kw">true</span>);   <span class="comment">// 動いてしまう</span></code></pre>
+      </div>
+      <div class="code-block">
+        <div class="code-header code-header-ts"><span class="code-header-dot"></span>TypeScript</div>
+        <pre><code><span class="kw">const</span> skus<span class="type-ann">: string[]</span> = [<span class="str">"A"</span>, <span class="str">"B"</span>, <span class="str">"C"</span>];
+
+skus.push(<span class="err">123</span>);   <span class="err">// Error: number は string[] に追加不可</span>
+skus.push(<span class="err">true</span>);  <span class="err">// Error: boolean は string[] に追加不可</span>
+
+skus.push(<span class="str">"D"</span>);   <span class="ok">// OK</span></code></pre>
+      </div>
+    </div>
+
+    <h3>パターン3: 関数の戻り値型</h3>
+    <div class="compare">
+      <div class="code-block">
+        <div class="code-header code-header-js"><span class="code-header-dot"></span>JavaScript</div>
+        <pre><code><span class="kw">function</span> <span class="fn">getStock</span>(sku) {
+  <span class="comment">// 返し忘れても気づかない</span>
+  <span class="kw">if</span> (sku === <span class="str">"A"</span>) {
+    <span class="kw">return</span> { sku: <span class="str">"A"</span>, qty: <span class="num">10</span> };
+  }
+  <span class="comment">// else のとき undefined を返す</span>
+}</code></pre>
+      </div>
+      <div class="code-block">
+        <div class="code-header code-header-ts"><span class="code-header-dot"></span>TypeScript</div>
+        <pre><code><span class="kw">type</span> <span class="type-ann">Stock</span> = { sku<span class="type-ann">: string</span>; qty<span class="type-ann">: number</span> };
+
+<span class="kw">function</span> <span class="fn">getStock</span>(sku<span class="type-ann">: string</span>)<span class="type-ann">: Stock</span> {
+  <span class="kw">if</span> (sku === <span class="str">"A"</span>) {
+    <span class="kw">return</span> { sku: <span class="str">"A"</span>, qty: <span class="num">10</span> };
+  }
+  <span class="err">// Error: Stock を返す必要があるが</span>
+  <span class="err">// undefined を返しているパスがある</span>
+}</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. strict モード -->
+  <section>
+    <h2>6. strict モードとは</h2>
+
+    <div class="card">
+      <p style="margin-bottom:0.75rem;"><code>tsconfig.json</code> に <code>"strict": true</code> を書くと、以下のチェックがすべて有効になります。</p>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size:0.88rem;">
+        <div style="display:flex; align-items:flex-start; gap:0.5rem;">
+          <span style="color:var(--green); flex-shrink:0;">✓</span>
+          <span><code>strictNullChecks</code> — <code>null</code>/<code>undefined</code> の見落としを防ぐ</span>
+        </div>
+        <div style="display:flex; align-items:flex-start; gap:0.5rem;">
+          <span style="color:var(--green); flex-shrink:0;">✓</span>
+          <span><code>noImplicitAny</code> — 型推論できない変数を <code>any</code> にしない</span>
+        </div>
+        <div style="display:flex; align-items:flex-start; gap:0.5rem;">
+          <span style="color:var(--green); flex-shrink:0;">✓</span>
+          <span><code>strictFunctionTypes</code> — 関数型の厳密なチェック</span>
+        </div>
+        <div style="display:flex; align-items:flex-start; gap:0.5rem;">
+          <span style="color:var(--green); flex-shrink:0;">✓</span>
+          <span><code>strictPropertyInitialization</code> — クラスのプロパティ初期化を強制</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="code-block" style="margin-bottom:1rem;">
+      <div class="code-header code-header-ts"><span class="code-header-dot"></span>tsconfig.json（Day3 で使う最小構成）</div>
+      <pre><code>{
+  <span class="str">"compilerOptions"</span>: {
+    <span class="str">"target"</span>: <span class="str">"ES2020"</span>,       <span class="comment">// 出力する JS のバージョン</span>
+    <span class="str">"module"</span>: <span class="str">"commonjs"</span>,    <span class="comment">// Node.js 向けモジュール形式</span>
+    <span class="str">"strict"</span>: <span class="kw">true</span>,          <span class="comment">// 厳密モード（全チェック有効）</span>
+    <span class="str">"outDir"</span>: <span class="str">"./dist"</span>,      <span class="comment">// コンパイル後 JS の出力先</span>
+    <span class="str">"rootDir"</span>: <span class="str">"./src"</span>       <span class="comment">// ソースファイルのルート</span>
+  }
+}</code></pre>
+    </div>
+
+    <div class="callout callout-warn">
+      <span class="callout-icon">⚠️</span>
+      <div><code>any</code> 型は TypeScript のすべての型チェックを無効にします。「とりあえずコンパイルを通す」ために使いたくなりますが、乱用すると TypeScript を使う意味がなくなります。型がわからないときは <code>unknown</code> を使い、必要に応じてナローイング（型を絞り込む処理）してください。</div>
+    </div>
+  </section>
+
+  <!-- 7. Day3 でやること -->
+  <section>
+    <h2>7. Day3 でやること（チェックリスト）</h2>
+    <div class="card">
+      <ul style="list-style:none; padding:0;">
+        <li style="padding: 0.5rem 0; border-bottom:1px solid var(--border); display:flex; gap:0.75rem;">
+          <span style="color:var(--muted);">□</span>
+          <span><code>npm init -y</code> → <code>npm install typescript</code> → <code>npx tsc --init</code> で環境構築</span>
+        </li>
+        <li style="padding: 0.5rem 0; border-bottom:1px solid var(--border); display:flex; gap:0.75rem;">
+          <span style="color:var(--muted);">□</span>
+          <span><code>tsconfig.json</code> に <code>"strict": true</code> を確認</span>
+        </li>
+        <li style="padding: 0.5rem 0; border-bottom:1px solid var(--border); display:flex; gap:0.75rem;">
+          <span style="color:var(--muted);">□</span>
+          <span><code>interface Item</code>（id, name, category, price）を定義して <code>tsc</code> でコンパイル</span>
+        </li>
+        <li style="padding: 0.5rem 0; border-bottom:1px solid var(--border); display:flex; gap:0.75rem;">
+          <span style="color:var(--muted);">□</span>
+          <span><code>type MovementType = "in" | "out"</code> を定義して <code>StockMovement</code> 型を作る</span>
+        </li>
+        <li style="padding: 0.5rem 0; display:flex; gap:0.75rem;">
+          <span style="color:var(--muted);">□</span>
+          <span>Day2 の <code>reduce</code>（カテゴリ集計・在庫計算）を TypeScript で書き直して型エラーが出ないことを確認</span>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <div style="text-align:center; color: var(--muted); font-size:0.82rem; margin-top:3rem; padding-top:1.5rem; border-top:1px solid var(--border);">
+    Day3 TypeScript 導入 — JavaScript との違いをコードで体感する
+  </div>
+
+</div>
+</body>
+</html>
