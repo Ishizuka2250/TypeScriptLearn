@@ -120,3 +120,20 @@
 - 不正解: A1（syntax error + 戻り値の形式ミス）、A4（.catch と allSettled の混在・syntax error）、A5（rejected を fulfilled 配列に push するバグ）、A7（初期化直後に push して重複するバグ）
 - 弱点: Promise.allSettled の結果構造（{status, value/reason}）と .catch との使い分け
 - 次アクション: Part A / Part B を再演習し、Promise.all + .catch パターン / Promise.allSettled の結果マップパターンを確実に実装できるようにする
+
+---
+
+## Day2 追加演習ログ（2026-05-26）
+- 実施日: 2026-05-26
+- 所要時間: 150分（map メソッドのみで出力を完結させようとして時間をロス）
+- 正答数: 2/5（△3問含む）
+- 間違えた問題番号: A2, A3, A4
+- つまずいた理由: 一部仕様を無視した実装（A4 v1 で Promise.allSettled を使用）、Promise のキャンセル不可仕様の理解不足（A3）、await を Promise.all 内に書いて逐次化（A2）
+- 明日の改善ポイント: 非同期処理・Promise の理解が進んだため、Day3（TypeScript 導入）へ進む
+
+## Day2 追加演習 採点結果（2026-05-26）
+- 判定: Day3（TypeScript 導入）へ進行
+- 正解: A1, A4（v1修正後）, A5
+- 部分正解: A2（await inside Promise.all で逐次化）、A3（Promise はキャンセルされない、結果が無視されるだけ）
+- 習得済み: Promise.all + .catch パターン / Promise.allSettled + .map パターンの両方を実装できた
+- 持越し理解: ① await は Promise.all の配列の外に書く、② Promise はキャンセル不可（結果が無視されるだけ）

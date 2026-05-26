@@ -65,6 +65,49 @@ async function loadDashboard_parallel() {
 })();
 ```
 
+### A1
+```
+function mockAsync(value, ms, fail = false) {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            if (fail) reject(new Error(`失敗: ${JSON.stringify(value)}`));
+            else resolve(value);
+        }, ms);
+    });
+}
+
+// 逐次実行（約600ms かかる）
+async function loadDashboard_sequential() {
+    console.time("sequential");
+    const products     = await mockAsync([{ id: 1, name: "ペン" }],     300);
+    const stocks         = await mockAsync([{ sku: "A", qty: 10 }],         200);
+    const categories = await mockAsync(["文具", "キッチン"],                    100);
+    console.timeEnd("sequential");
+    return { products, stocks, categories };
+}
+
+// 並列実行に書き換える（約300ms になるはず）
+async function loadDashboard_parallel() {
+    console.time("parallel");
+    const [products, stocks, categories] = await Promise.all([
+        mockAsync([{ id: 1, name: "ペン" }], 300),
+        mockAsync([{ sku: "A", qty: 10 }], 200),
+        mockAsync(["文具", "キッチン"], 100)
+    ]);
+    console.timeEnd("parallel");
+    return {products, stocks, categories}
+}
+
+(async () => {
+    console.log(await loadDashboard_sequential());
+    console.log(await loadDashboard_parallel());
+})();
+
+
+console.log("XXXXXXXX")
+```
+
+
 ---
 
 ### Q2
@@ -94,6 +137,30 @@ async function loadItems() {
 ```
 
 ヒント: 実行してエラーメッセージを確認するところから始めてください。
+
+### A2
+```
+function mockAsync(value, ms, fail = false) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      if (fail) reject(new Error(`失敗: ${JSON.stringify(value)}`));
+      else resolve(value);
+    }, ms);
+  });
+}
+
+async function loadItems() {
+  const [ products, stocks ] = await Promise.all([
+    await mockAsync({ name: "商品一覧" }, 200),
+    await mockAsync({ count: 50 },       100),
+  ]);
+  return { products, stocks };
+}
+
+(async () => {
+  console.log(await loadItems());
+})();
+```
 
 ---
 
@@ -133,6 +200,12 @@ main();
 2. 1番目（300ms）と3番目（200ms）の処理はどうなりますか？
 3. 以下の要件に `Promise.all` は適切ですか？理由も答えてください。
    - 要件: 商品・在庫・カテゴリのどれか1つでも失敗したら、画面全体をエラー表示にする。
+
+### A3
+1. 112ms 後に処理が失敗しエラー出力された。
+300ms, 200ms, 100msのタスクが並列実行されるが、100msの時点で実行失敗するため。
+2. 2番目の処理が失敗した時点で、1番目と3番目の処理は停止される。
+3. Promise.allは、複数処理のうち1つでも失敗すると後続の処理が停止され、エラーが返却されるため、この要件に合致している。
 
 ---
 
@@ -176,6 +249,53 @@ async function loadDashboard_v2() {
 })();
 ```
 
+### A4
+```
+function mockAsync(value, ms, fail = false) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      if (fail) reject(new Error(`失敗: ${JSON.stringify(value)}`));
+      else resolve(value);
+    }, ms);
+  });
+}
+
+// パターン1: Promise.all + .catch(() => null) を使う
+async function loadDashboard_v1() {
+    const [ products, stocks, categories ] = await Promise.all([
+      mockAsync({ id: 1, name: "ペン" }, 200).catch(r => null),
+      mockAsync({ sku: "A", qty: 10 }, 100, true).catch(r => null),  // 100ms後に失敗
+      mockAsync(["文具", "キッチン"], 150).catch(r => null),
+    ]);
+    return { products, stocks, categories };
+}
+
+// パターン2: Promise.allSettled + .map() を使う
+// ヒント: allSettled の結果は [{status:'fulfilled', value:...}, {status:'rejected', reason:...}] の形
+async function loadDashboard_v2() {
+    const results = await Promise.allSettled([
+      mockAsync({ id: 1, name: "ペン" }, 200),
+      mockAsync({ sku: "A", qty: 10 }, 100, true),  // 100ms後に失敗
+      mockAsync(["文具", "キッチン"], 150),
+    ]);
+    const [ products, stocks, categories ] = results.map((r) => {
+        if (r.status === 'fulfilled') {
+            return r.value;
+        } else {
+            return null;
+        }
+    });
+    return { products: products, stocks: stocks, categories: categories };
+}
+
+(async () => {
+  // 2番目（在庫）だけ失敗させる
+  console.log("v1:", await loadDashboard_v1());
+     console.log("v2:", await loadDashboard_v2());
+  // 期待: { products: {...}, stocks: null, categories: {...} }
+})();
+```
+
 ---
 
 ### Q5
@@ -202,6 +322,48 @@ function splitResults(results) {
       output.fulfilled.push(result.value);
     } else {
       output.fulfilled.push(result.reason.message);  // ← バグ
+    }
+  });
+  return output;
+}
+
+(async () => {
+  const results = await Promise.allSettled([
+    mockAsync("商品一覧", 100),
+    mockAsync("在庫",     100, true),
+    mockAsync("カテゴリ", 100),
+  ]);
+
+  const { fulfilled, rejected } = splitResults(results);
+  console.log("fulfilled:", fulfilled);
+  console.log("rejected:",  rejected);
+  // 期待:
+  // fulfilled: ["商品一覧", "カテゴリ"]
+  // rejected:  ["失敗: \"在庫\""]
+})();
+```
+
+### A5
+```
+function mockAsync(value, ms, fail = false) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      if (fail) reject(new Error(`失敗: ${JSON.stringify(value)}`));
+      else resolve(value);
+    }, ms);
+  });
+}
+
+function splitResults(results) {
+  const output = {
+    fulfilled: [],
+    rejected:  [],
+  };
+  results.forEach((result) => {
+    if (result.status === "fulfilled") {
+      output.fulfilled.push(result.value);
+    } else {
+      output.rejected.push(result.reason.message);  // ← バグ
     }
   });
   return output;
