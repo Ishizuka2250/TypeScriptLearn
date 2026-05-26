@@ -126,15 +126,42 @@ function splitResults(results) {
 ```
 
 ### A5
+```js
+// 使用例
+const results = await Promise.allSettled([
+  fetch("/api/products").then(r => r.json()),
+  fetch("/api/stocks").then(r => r.json()),
+  fetch("/api/categories").then(r => r.json()),
+]);
 
+const { fulfilled, rejected } = splitResults(results);
+// fulfilled: 成功した結果の value の配列
+// rejected:  失敗した結果の reason の配列
+
+function splitResults(results) {
+  output = {
+    fulfilled:[],
+    rejected:[]
+  };
+  results.map((result) => {
+    if (result.status === 'fulfilled') {
+      output.fulfilled.push(result.value);
+    } else {
+      output.fulfilled.push(result.reason);
+    }
+  });
+  return output;
+}
+```
 
 
 ### Q6
 `Promise.all` と `Promise.allSettled` について、在庫管理システムの文脈で使い分けの基準を自分の言葉で説明してください。
 
 ### A6
-
-
+在庫管理システム内の在庫数などズレが許されず、すべてのタスクが必ず完了していなければならない時に promise.all を使用し
+それ以外の重要ではないがいずれかの読み込み/書き込みが成功していればよい (失敗したタスクは別途再実行する) パターンで
+promise.allSettled を使用する。 
 
 ---
 
