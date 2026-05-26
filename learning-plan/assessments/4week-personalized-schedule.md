@@ -103,3 +103,20 @@
 - 自己評価（5段階）
 
 追記先は learning-plan/assessments/4week-personalized-schedule.md の末尾を使用する。
+
+---
+
+## Day2 実施ログ（2026-05-26）
+- 実施日: 2026-05-26
+- 所要時間: 180分（言語仕様等の調査を含む）
+- 正答数: 5/9
+- 間違えた問題番号: A1, A4, A5, A7
+- つまずいた理由: Promise.all / Promise.allSettled の理解が甘い
+- 明日の改善ポイント: Promise.all / Promise.allSettled の動きを確認しつつ課題を進める
+
+## Day2 採点結果（2026-05-26）
+- 判定: Promise系（Part A/B）再演習
+- 正解: A2, A3, A6, A8, A9
+- 不正解: A1（syntax error + 戻り値の形式ミス）、A4（.catch と allSettled の混在・syntax error）、A5（rejected を fulfilled 配列に push するバグ）、A7（初期化直後に push して重複するバグ）
+- 弱点: Promise.allSettled の結果構造（{status, value/reason}）と .catch との使い分け
+- 次アクション: Part A / Part B を再演習し、Promise.all + .catch パターン / Promise.allSettled の結果マップパターンを確実に実装できるようにする
