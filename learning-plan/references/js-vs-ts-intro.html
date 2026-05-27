@@ -302,6 +302,12 @@
             <td>エディタ上でリアルタイム</td>
           </tr>
           <tr>
+            <td>Null 安全性</td>
+            <td>null/undefined の扱い</td>
+            <td>チェックなし（実行時クラッシュ）</td>
+            <td><code>strictNullChecks: true</code> でコンパイル時に検出</td>
+          </tr>
+          <tr>
             <td>ファイル拡張子</td>
             <td>—</td>
             <td><code>.js</code> / <code>.mjs</code></td>
@@ -315,6 +321,32 @@
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <h3 style="margin-top:1.25rem;">Null 安全性：strictNullChecks について</h3>
+    <div class="callout callout-info" style="margin-bottom:1rem;">
+      <span class="callout-icon">💡</span>
+      <div>
+        TypeScript は<strong>デフォルトでは Null-Safe ではありません</strong>。<code>tsconfig.json</code> で <code>"strictNullChecks": true</code>（または <code>"strict": true</code>）を有効にすると、<code>null</code> / <code>undefined</code> の見落としをコンパイル時に検出できるようになります。<br>
+        Next.js などのモダンなプロジェクトでは <code>strict: true</code> がデフォルトで有効なので、<strong>実務では常に Null-Safe として扱う</strong>と思って問題ありません。
+      </div>
+    </div>
+    <div class="compare" style="margin-bottom:1rem;">
+      <div class="code-block">
+        <div class="code-header code-header-js"><span class="code-header-dot"></span>strictNullChecks: false（デフォルト）</div>
+        <pre><code><span class="kw">let</span> name<span class="type-ann">: string</span> = <span class="kw">null</span>;   <span class="comment">// エラーにならない</span>
+<span class="kw">let</span> age<span class="type-ann">: number</span> = <span class="kw">undefined</span>; <span class="comment">// エラーにならない</span></code></pre>
+      </div>
+      <div class="code-block">
+        <div class="code-header code-header-ts"><span class="code-header-dot"></span>strictNullChecks: true（strict: true で有効）</div>
+        <pre><code><span class="kw">let</span> name<span class="type-ann">: string</span> = <span class="err">null</span>;       <span class="err">// Error!</span>
+<span class="kw">let</span> name<span class="type-ann">: string | null</span> = <span class="kw">null</span>; <span class="ok">// OK: null を明示</span>
+
+<span class="comment">// null かもしれない値は使う前にチェックが必要</span>
+<span class="kw">if</span> (name !== <span class="kw">null</span>) {
+  console.log(name.length); <span class="ok">// OK</span>
+}</code></pre>
+      </div>
     </div>
 
     <h3 style="margin-top:1.25rem;">制御構文は JavaScript と完全に同じ</h3>
