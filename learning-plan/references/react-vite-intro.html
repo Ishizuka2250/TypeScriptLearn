@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>React + Vite 導入ガイド</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #222534;
+      --border: #2e3147;
+      --text: #e2e4ef;
+      --muted: #7b7f9e;
+      --react: #61dafb;
+      --react-dark: #0e7490;
+      --vite: #646cff;
+      --vite-light: #a5b4fc;
+      --green: #4ade80;
+      --red: #f87171;
+      --orange: #fb923c;
+      --purple: #a78bfa;
+      --yellow: #fbbf24;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      padding: 2rem 1rem 6rem;
+    }
+
+    .container { max-width: 900px; margin: 0 auto; }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 3rem 0 2.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 3rem;
+    }
+    .hero-badges {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .badge {
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.3rem 0.9rem;
+      border-radius: 99px;
+      letter-spacing: 0.05em;
+    }
+    .badge-react { background: #0c3a45; color: var(--react); border: 1px solid var(--react-dark); }
+    .badge-vite  { background: #1a1a3e; color: var(--vite-light); border: 1px solid var(--vite); }
+    .badge-ts    { background: #0d1f35; color: #5ba0e8; border: 1px solid #3178c6; }
+    .hero h1 { font-size: 2rem; font-weight: 800; margin-bottom: 0.75rem; }
+    .hero p { color: var(--muted); font-size: 1rem; }
+
+    /* Section */
+    section { margin-bottom: 3rem; }
+    h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 1.25rem;
+      padding-left: 0.75rem;
+      border-left: 3px solid var(--react);
+    }
+    h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--react); }
+
+    /* Card */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    /* Code comparison */
+    .compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    @media (max-width: 640px) { .compare { grid-template-columns: 1fr; } }
+
+    .code-block {
+      border-radius: 8px;
+      overflow: hidden;
+      font-size: 0.82rem;
+      margin-bottom: 1rem;
+    }
+    .code-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.9rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+    .code-header-react { background: #0c2a30; color: var(--react); }
+    .code-header-vite  { background: #14143a; color: var(--vite-light); }
+    .code-header-ts    { background: #0d1f35; color: #5ba0e8; }
+    .code-header-shell { background: #1a1a1a; color: #9ca3af; }
+    .code-header-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: currentColor; opacity: 0.7;
+    }
+    pre {
+      background: var(--surface2);
+      padding: 1rem;
+      overflow-x: auto;
+      margin: 0;
+    }
+    code { font-family: 'SF Mono', 'Fira Code', Consolas, monospace; }
+
+    /* Inline code */
+    p code, li code, td code {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 0.1em 0.4em;
+      border-radius: 4px;
+      font-size: 0.85em;
+    }
+
+    /* Callout */
+    .callout {
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+    }
+    .callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 0.1rem; }
+    .callout-info  { background: #0c2a30; border: 1px solid #1d4a5c; }
+    .callout-tip   { background: #0e2218; border: 1px solid #1a4a2e; }
+    .callout-warn  { background: #281a08; border: 1px solid #4d3010; }
+    .callout-vite  { background: #14143a; border: 1px solid #2e2e7a; }
+
+    /* Chip */
+    .chip {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.15rem 0.6rem;
+      border-radius: 99px;
+      margin-right: 0.3rem;
+      margin-bottom: 0.3rem;
+    }
+    .chip-react  { background: #0c2a30; color: var(--react);      border: 1px solid #1d4a5c; }
+    .chip-vite   { background: #14143a; color: var(--vite-light); border: 1px solid #2e2e7a; }
+    .chip-green  { background: #0e2218; color: var(--green);      border: 1px solid #1a4a2e; }
+    .chip-orange { background: #28180a; color: var(--orange);     border: 1px solid #4d2e10; }
+    .chip-purple { background: #1c1535; color: var(--purple);     border: 1px solid #352860; }
+
+    /* Syntax highlight */
+    .err    { color: var(--red); }
+    .ok     { color: var(--green); }
+    .comment{ color: #6b7280; }
+    .kw     { color: #c792ea; }
+    .str    { color: #c3e88d; }
+    .num    { color: #f78c6c; }
+    .fn     { color: #82aaff; }
+    .tag    { color: var(--react); }
+    .attr   { color: var(--vite-light); }
+    .type-ann { color: #5ba0e8; }
+    .hook   { color: var(--yellow); }
+
+    hr { border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }
+    ul { padding-left: 1.4rem; }
+    li { margin-bottom: 0.4rem; }
+
+    /* Flow */
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+    }
+    .flow-step {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.4rem 0.9rem;
+      font-weight: 600;
+    }
+    .flow-step-react { border-color: var(--react);      color: var(--react); }
+    .flow-step-vite  { border-color: var(--vite);       color: var(--vite-light); }
+    .flow-step-ts    { border-color: #3178c6;            color: #5ba0e8; }
+    .flow-arrow { color: var(--muted); font-size: 1.2rem; }
+
+    /* Table */
+    .diff-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    .diff-table th {
+      padding: 0.6rem 1rem;
+      text-align: left;
+      font-weight: 700;
+      font-size: 0.8rem;
+      letter-spacing: 0.06em;
+      border-bottom: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .diff-table td { padding: 0.7rem 1rem; vertical-align: top; border-bottom: 1px solid var(--border); }
+    .diff-table tr:last-child td { border-bottom: none; }
+
+    /* Directory tree */
+    .tree {
+      background: var(--surface2);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+      font-size: 0.82rem;
+      line-height: 1.8;
+    }
+    .tree-dir  { color: var(--vite-light); font-weight: 600; }
+    .tree-file { color: var(--text); }
+    .tree-note { color: var(--muted); }
+    .tree-react { color: var(--react); }
+
+    /* Concept diagram */
+    .concept-box {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: center;
+      font-size: 0.85rem;
+    }
+    .concept-box .label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-bottom: 0.25rem;
+    }
+    .concept-box .value {
+      font-weight: 700;
+    }
+
+    .component-diagram {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0.5rem;
+      margin: 1rem 0;
+    }
+    @media (max-width: 600px) { .component-diagram { grid-template-columns: 1fr; } }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 0.75rem;
+    }
+    .summary-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+    .summary-item .label { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.3rem; }
+    .summary-item .value { font-size: 0.9rem; font-weight: 600; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-badges">
+      <span class="badge badge-vite">Vite</span>
+      <span style="color: var(--muted); align-self:center;">+</span>
+      <span class="badge badge-react">React</span>
+      <span style="color: var(--muted); align-self:center;">+</span>
+      <span class="badge badge-ts">TypeScript</span>
+    </div>
+    <h1>Day4 導入ガイド</h1>
+    <p>Vite でプロジェクトを作り、React の基本概念をコードで理解する。</p>
+  </div>
+
+  <!-- 1. Vite とは -->
+  <section>
+    <h2>1. Vite とは</h2>
+    <div class="card">
+      <p style="margin-bottom:0.75rem;">
+        Vite（ヴィート）は <strong>フロントエンド開発ツール</strong> です。「React アプリをブラウザで動かすための環境一式」をコマンド1つで用意してくれます。
+      </p>
+      <p style="margin-bottom:0.75rem; color:var(--muted); font-size:0.9rem;">
+        PHP / Laravel に例えると、<code>composer create-project laravel/laravel</code> がプロジェクト雛形を作るのと同じ役割です。
+      </p>
+      <div class="flow">
+        <div class="flow-step flow-step-ts">.tsx ファイル</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step flow-step-vite">Vite（変換・バンドル）</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">ブラウザで実行</div>
+      </div>
+    </div>
+
+    <h3>Vite が解決する問題</h3>
+    <div class="card" style="padding:0; overflow:hidden;">
+      <table class="diff-table">
+        <thead>
+          <tr>
+            <th>課題</th>
+            <th>Vite がやること</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>TypeScript はブラウザで直接動かない</td>
+            <td>TSX → JS へ変換してブラウザに渡す</td>
+          </tr>
+          <tr>
+            <td>ファイルを変更するたびに手動でビルドしたくない</td>
+            <td>保存するたびにブラウザが自動更新（HMR）</td>
+          </tr>
+          <tr>
+            <td>本番用に複数ファイルをまとめたい</td>
+            <td><code>npm run build</code> で最適化済みの JS を出力</td>
+          </tr>
+          <tr>
+            <td>React + TypeScript の設定が複雑</td>
+            <td>テンプレートで最初から全設定済み</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>プロジェクト作成コマンド</h3>
+    <div class="code-block">
+      <div class="code-header code-header-shell"><span class="code-header-dot"></span>Terminal</div>
+      <pre><code><span class="comment"># React + TypeScript テンプレートでプロジェクト作成</span>
+npm create vite@latest day4-react -- --template react-ts
+
+<span class="comment"># ディレクトリへ移動して依存パッケージをインストール</span>
+cd day4-react
+npm install
+
+<span class="comment"># 開発サーバー起動 → http://localhost:5173 で確認</span>
+npm run dev</code></pre>
+    </div>
+
+    <h3>作成されるディレクトリ構造</h3>
+    <div class="tree">
+      <div><span class="tree-dir">day4-react/</span></div>
+      <div>&nbsp;&nbsp;<span class="tree-dir">src/</span></div>
+      <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="tree-react">App.tsx</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tree-note">← アプリのルートコンポーネント（ここから書き始める）</span></div>
+      <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="tree-react">main.tsx</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tree-note">← React を HTML に差し込む起点（基本触らない）</span></div>
+      <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="tree-file">index.css</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tree-note">← グローバル CSS</span></div>
+      <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="tree-dir">components/</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tree-note">← 自作コンポーネントはここに作る</span></div>
+      <div>&nbsp;&nbsp;<span class="tree-file">index.html</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tree-note">← エントリーポイント HTML（&lt;div id="root"&gt; がある）</span></div>
+      <div>&nbsp;&nbsp;<span class="tree-file">tsconfig.json</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tree-note">← TypeScript 設定（自動生成済み）</span></div>
+      <div>&nbsp;&nbsp;<span class="tree-vite">vite.config.ts</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tree-note">← Vite 設定（基本触らない）</span></div>
+      <div>&nbsp;&nbsp;<span class="tree-file">package.json</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tree-note">← npm scripts が定義されている</span></div>
+    </div>
+
+    <div class="callout callout-vite" style="margin-top:1rem;">
+      <span class="callout-icon">💡</span>
+      <div><strong>触るのは <code>src/</code> の中だけ</strong>で大丈夫です。<code>main.tsx</code>・<code>vite.config.ts</code>・<code>tsconfig.json</code> は Day4 では変更不要です。</div>
+    </div>
+  </section>
+
+  <!-- 2. React とは -->
+  <section>
+    <h2>2. React とは</h2>
+    <div class="card">
+      <p style="margin-bottom:0.75rem;">
+        React は <strong>UI をコンポーネント単位で組み立てる JavaScript ライブラリ</strong>です。Meta（旧 Facebook）が開発・OSS 公開しています。
+      </p>
+      <p style="color:var(--muted); font-size:0.9rem;">
+        PHP / Laravel の Blade テンプレートに似ていますが、React は「状態が変わったときに自動で画面を更新する」仕組みを持っています。
+      </p>
+    </div>
+
+    <h3>コンポーネント指向とは</h3>
+    <p style="font-size:0.9rem; margin-bottom:0.75rem; color:var(--muted);">
+      画面を「部品（コンポーネント）」に分割して組み合わせます。
+    </p>
+    <div class="component-diagram">
+      <div class="concept-box" style="border-color: var(--react); grid-column: 1 / -1;">
+        <div class="label">App（ページ全体）</div>
+        <div class="value" style="color:var(--react);">&lt;App /&gt;</div>
+      </div>
+      <div class="concept-box">
+        <div class="label">商品リスト</div>
+        <div class="value">&lt;ItemList /&gt;</div>
+      </div>
+      <div class="concept-box">
+        <div class="label">検索フォーム</div>
+        <div class="value">&lt;ItemSearch /&gt;</div>
+      </div>
+      <div class="concept-box">
+        <div class="label">在庫カード</div>
+        <div class="value">&lt;ItemCard /&gt;</div>
+      </div>
+    </div>
+    <div class="callout callout-tip">
+      <span class="callout-icon">✅</span>
+      <div>各コンポーネントは <strong>独立したファイル</strong>（<code>.tsx</code>）として作成し、<code>App.tsx</code> から呼び出します。Laravel でいうと Blade コンポーネント（<code>@component</code>）に近いイメージです。</div>
+    </div>
+  </section>
+
+  <!-- 3. JSX / TSX -->
+  <section>
+    <h2>3. JSX / TSX — HTML を JS の中に書く構文</h2>
+
+    <div class="callout callout-info">
+      <span class="callout-icon">📌</span>
+      <div>
+        <strong>JSX</strong>（JavaScript XML）は HTML に似た構文を JavaScript の中に書けるようにした記法です。<br>
+        <strong>TSX</strong> は JSX を TypeScript で書いたもの（<code>.tsx</code> 拡張子）です。<br>
+        Vite が変換してくれるので、ブラウザに送る前に通常の JavaScript になります。
+      </div>
+    </div>
+
+    <div class="compare">
+      <div class="code-block">
+        <div class="code-header code-header-shell"><span class="code-header-dot"></span>PHP / Blade（参考）</div>
+        <pre><code>&lt;div class="card"&gt;
+  &lt;p&gt;{{ $item->name }}&lt;/p&gt;
+  &lt;p&gt;¥{{ $item->price }}&lt;/p&gt;
+&lt;/div&gt;</code></pre>
+      </div>
+      <div class="code-block">
+        <div class="code-header code-header-react"><span class="code-header-dot"></span>TSX（React）</div>
+        <pre><code><span class="kw">const</span> name = <span class="str">"ペン"</span>;
+<span class="kw">const</span> price = <span class="num">120</span>;
+
+<span class="comment">// {} の中は JavaScript 式を書ける</span>
+<span class="kw">return</span> (
+  <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"card"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;p&gt;</span>{name}<span class="tag">&lt;/p&gt;</span>
+    <span class="tag">&lt;p&gt;</span>¥{price}<span class="tag">&lt;/p&gt;</span>
+  <span class="tag">&lt;/div&gt;</span>
+);</code></pre>
+      </div>
+    </div>
+
+    <h3>JSX の注意点</h3>
+    <div class="card" style="padding:0; overflow:hidden;">
+      <table class="diff-table">
+        <thead>
+          <tr><th>HTML</th><th>JSX / TSX</th><th>理由</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>class="..."</code></td>
+            <td><code>className="..."</code></td>
+            <td><code>class</code> は JS の予約語のため</td>
+          </tr>
+          <tr>
+            <td><code>for="..."</code></td>
+            <td><code>htmlFor="..."</code></td>
+            <td><code>for</code> は JS の予約語のため</td>
+          </tr>
+          <tr>
+            <td>タグを閉じなくてよい<br><code>&lt;br&gt;</code></td>
+            <td>必ず閉じる<br><code>&lt;br /&gt;</code></td>
+            <td>JSX は XML の厳密な構文ルール</td>
+          </tr>
+          <tr>
+            <td>複数タグを並べてよい</td>
+            <td>1つのルート要素で包む<br><code>&lt;&gt;...&lt;/&gt;</code>（Fragment）</td>
+            <td>JSX は1つの要素を返す必要がある</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 4. 関数コンポーネント -->
+  <section>
+    <h2>4. 関数コンポーネント</h2>
+    <p style="font-size:0.9rem; color:var(--muted); margin-bottom:0.75rem;">
+      React のコンポーネントは <strong>JSX を返す TypeScript 関数</strong>です。関数名は大文字始まりにします。
+    </p>
+
+    <div class="code-block">
+      <div class="code-header code-header-react"><span class="code-header-dot"></span>src/components/ItemCard.tsx</div>
+      <pre><code><span class="comment">// Props の型を interface で定義する</span>
+<span class="kw">interface</span> <span class="type-ann">ItemCardProps</span> {
+  name<span class="type-ann">: string</span>;
+  price<span class="type-ann">: number</span>;
+}
+
+<span class="comment">// 関数コンポーネント: Props を受け取り JSX を返す</span>
+<span class="kw">export function</span> <span class="fn">ItemCard</span>({ name, price }<span class="type-ann">: ItemCardProps</span>) {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"card"</span><span class="tag">&gt;</span>
+      <span class="tag">&lt;p&gt;</span>{name}<span class="tag">&lt;/p&gt;</span>
+      <span class="tag">&lt;p&gt;</span>¥{price}<span class="tag">&lt;/p&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  );
+}</code></pre>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header code-header-react"><span class="code-header-dot"></span>src/App.tsx（呼び出し側）</div>
+      <pre><code><span class="kw">import</span> { ItemCard } <span class="kw">from</span> <span class="str">"./components/ItemCard"</span>;
+
+<span class="kw">export function</span> <span class="fn">App</span>() {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div&gt;</span>
+      <span class="comment">{/* コンポーネントを HTML タグのように使う */}</span>
+      <span class="tag">&lt;ItemCard</span> <span class="attr">name</span>=<span class="str">"ペン"</span> <span class="attr">price</span>={<span class="num">120</span>} <span class="tag">/&gt;</span>
+      <span class="tag">&lt;ItemCard</span> <span class="attr">name</span>=<span class="str">"ノート"</span> <span class="attr">price</span>={<span class="num">150</span>} <span class="tag">/&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  );
+}</code></pre>
+    </div>
+
+    <div class="callout callout-info">
+      <span class="callout-icon">💡</span>
+      <div>
+        <strong>Props</strong> は「親コンポーネントから子コンポーネントへデータを渡す仕組み」です。<br>
+        Laravel に例えると、Blade コンポーネントに <code>:name="$item->name"</code> で値を渡すのと同じです。<br>
+        Props は<strong>子から親へは変更できません</strong>（一方通行）。
+      </div>
+    </div>
+
+    <h3>Optional Props（省略可能な Props）</h3>
+    <div class="code-block">
+      <div class="code-header code-header-react"><span class="code-header-dot"></span>? を付けると省略可能になる</div>
+      <pre><code><span class="kw">interface</span> <span class="type-ann">ItemCardProps</span> {
+  name<span class="type-ann">: string</span>;
+  price<span class="type-ann">: number</span>;
+  category<span class="type-ann">?: string</span>;  <span class="comment">// ? で省略可能（string | undefined になる）</span>
+}
+
+<span class="kw">export function</span> <span class="fn">ItemCard</span>({ name, price, category }<span class="type-ann">: ItemCardProps</span>) {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div&gt;</span>
+      <span class="tag">&lt;p&gt;</span>{name} — ¥{price}<span class="tag">&lt;/p&gt;</span>
+      <span class="comment">{/* category が undefined のときは何も表示しない */}</span>
+      {category &amp;&amp; <span class="tag">&lt;p&gt;</span>{category}<span class="tag">&lt;/p&gt;</span>}
+    <span class="tag">&lt;/div&gt;</span>
+  );
+}
+
+<span class="comment">// 両方コンパイルエラーにならない</span>
+<span class="tag">&lt;ItemCard</span> <span class="attr">name</span>=<span class="str">"ペン"</span> <span class="attr">price</span>={<span class="num">120</span>} <span class="attr">category</span>=<span class="str">"文具"</span> <span class="tag">/&gt;</span>
+<span class="tag">&lt;ItemCard</span> <span class="attr">name</span>=<span class="str">"ノート"</span> <span class="attr">price</span>={<span class="num">150</span>} <span class="tag">/&gt;</span></code></pre>
+    </div>
+  </section>
+
+  <!-- 5. useState -->
+  <section>
+    <h2>5. useState — コンポーネントの状態管理</h2>
+
+    <div class="callout callout-info">
+      <span class="callout-icon">📌</span>
+      <div>
+        <strong>useState</strong> は React が提供する <strong>Hook</strong>（フック）の一つです。<br>
+        コンポーネントの中に「変化する値（状態）」を持たせ、値が変わると自動で画面を再レンダリングします。<br>
+        PHP / Laravel の変数とは異なり、<strong>値を直接変更しても画面は更新されません</strong>。必ず専用の関数（setter）を使います。
+      </div>
+    </div>
+
+    <div class="compare">
+      <div class="code-block">
+        <div class="code-header code-header-shell"><span class="code-header-dot"></span>NG: 直接変更しても画面は更新されない</div>
+        <pre><code><span class="kw">let</span> qty = <span class="num">10</span>;
+
+<span class="kw">function</span> <span class="fn">handleClick</span>() {
+  qty = qty + <span class="num">1</span>;  <span class="comment">// 値は変わるが</span>
+  <span class="err">// 画面は更新されない！</span>
+}</code></pre>
+      </div>
+      <div class="code-block">
+        <div class="code-header code-header-react"><span class="code-header-dot"></span>OK: useState の setter を使う</div>
+        <pre><code><span class="kw">import</span> { <span class="hook">useState</span> } <span class="kw">from</span> <span class="str">"react"</span>;
+
+<span class="kw">const</span> [qty, setQty] = <span class="hook">useState</span>(<span class="num">10</span>);
+<span class="comment">//    ↑現在値  ↑更新関数  ↑初期値</span>
+
+<span class="kw">function</span> <span class="fn">handleClick</span>() {
+  <span class="fn">setQty</span>(qty + <span class="num">1</span>); <span class="ok">// 画面が自動更新される</span>
+}</code></pre>
+      </div>
+    </div>
+
+    <h3>在庫カウンターの実装例</h3>
+    <div class="code-block">
+      <div class="code-header code-header-react"><span class="code-header-dot"></span>src/components/StockCounter.tsx</div>
+      <pre><code><span class="kw">import</span> { <span class="hook">useState</span> } <span class="kw">from</span> <span class="str">"react"</span>;
+
+<span class="kw">interface</span> <span class="type-ann">StockCounterProps</span> {
+  initialQty<span class="type-ann">: number</span>;
+}
+
+<span class="kw">export function</span> <span class="fn">StockCounter</span>({ initialQty }<span class="type-ann">: StockCounterProps</span>) {
+  <span class="kw">const</span> [qty, setQty] = <span class="hook">useState</span>(initialQty);
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div&gt;</span>
+      <span class="tag">&lt;p&gt;</span>在庫数: {qty}<span class="tag">&lt;/p&gt;</span>
+      <span class="tag">&lt;button</span> <span class="attr">onClick</span>={() =&gt; <span class="fn">setQty</span>(qty + <span class="num">1</span>)}<span class="tag">&gt;</span>入庫 +1<span class="tag">&lt;/button&gt;</span>
+      <span class="tag">&lt;button</span> <span class="attr">onClick</span>={() =&gt; <span class="fn">setQty</span>(Math.max(<span class="num">0</span>, qty - <span class="num">1</span>))}<span class="tag">&gt;</span>出庫 -1<span class="tag">&lt;/button&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  );
+}</code></pre>
+    </div>
+
+    <h3>テキスト入力の状態管理（制御コンポーネント）</h3>
+    <div class="code-block">
+      <div class="code-header code-header-react"><span class="code-header-dot"></span>入力値を state で管理する</div>
+      <pre><code><span class="kw">const</span> [query, setQuery] = <span class="hook">useState</span>(<span class="str">""</span>);
+
+<span class="kw">return</span> (
+  <span class="tag">&lt;div&gt;</span>
+    <span class="tag">&lt;input</span>
+      <span class="attr">value</span>={query}
+      <span class="attr">onChange</span>={(e) =&gt; <span class="fn">setQuery</span>(e.target.value)}
+      <span class="attr">placeholder</span>=<span class="str">"商品名を入力"</span>
+    <span class="tag">/&gt;</span>
+    {query &amp;&amp; <span class="tag">&lt;p&gt;</span>検索中: {query}<span class="tag">&lt;/p&gt;</span>}
+  <span class="tag">&lt;/div&gt;</span>
+);</code></pre>
+    </div>
+
+    <div class="callout callout-warn">
+      <span class="callout-icon">⚠️</span>
+      <div>
+        <code>useState</code> などの Hook は<strong>必ずコンポーネントのトップレベルで呼び出す</strong>ルールがあります。<code>if</code> や <code>for</code> の中で呼ぶとエラーになります。<br>
+        また、Hook を使うコンポーネントのファイル先頭に <code>"use client"</code> は不要です（Vite 環境では関係ありません。Next.js に移行したときに登場します）。
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. リスト表示 -->
+  <section>
+    <h2>6. リスト表示 / 条件レンダリング</h2>
+
+    <h3>リスト表示：.map() で繰り返す</h3>
+    <div class="code-block">
+      <div class="code-header code-header-react"><span class="code-header-dot"></span>配列を .map() で JSX に変換する</div>
+      <pre><code><span class="kw">interface</span> <span class="type-ann">Item</span> {
+  id<span class="type-ann">: number</span>;
+  name<span class="type-ann">: string</span>;
+  qty<span class="type-ann">: number</span>;
+}
+
+<span class="kw">const</span> items<span class="type-ann">: Item[]</span> = [
+  { id: <span class="num">1</span>, name: <span class="str">"ペン"</span>,   qty: <span class="num">50</span> },
+  { id: <span class="num">2</span>, name: <span class="str">"ノート"</span>, qty: <span class="num">8</span>  },
+];
+
+<span class="kw">return</span> (
+  <span class="tag">&lt;ul&gt;</span>
+    {items.<span class="fn">map</span>((item) =&gt; (
+      <span class="comment">{/* key は React が差分更新に使う識別子。id など一意の値を渡す */}</span>
+      <span class="tag">&lt;li</span> <span class="attr">key</span>={item.id}<span class="tag">&gt;</span>
+        {item.name} — {item.qty}個
+      <span class="tag">&lt;/li&gt;</span>
+    ))}
+  <span class="tag">&lt;/ul&gt;</span>
+);</code></pre>
+    </div>
+
+    <div class="callout callout-warn">
+      <span class="callout-icon">⚠️</span>
+      <div><code>key</code> を省略すると React が警告を出します。配列インデックス（<code>index</code>）を <code>key</code> にすることは可能ですが、リストの並び替えがあると不具合の原因になります。<strong>基本は <code>id</code> など一意の値</strong>を使います。</div>
+    </div>
+
+    <h3>条件レンダリング</h3>
+    <div class="code-block">
+      <div class="code-header code-header-react"><span class="code-header-dot"></span>3つのパターン</div>
+      <pre><code><span class="comment">// ① && 演算子: 条件が true のときだけ表示</span>
+{qty &lt;= <span class="num">10</span> &amp;&amp; <span class="tag">&lt;span&gt;</span>⚠ 在庫少<span class="tag">&lt;/span&gt;</span>}
+
+<span class="comment">// ② 三項演算子: true/false で表示内容を切り替え</span>
+{inStock ? <span class="tag">&lt;span&gt;</span>在庫あり<span class="tag">&lt;/span&gt;</span> : <span class="tag">&lt;span&gt;</span>在庫なし<span class="tag">&lt;/span&gt;</span>}
+
+<span class="comment">// ③ 早期 return: 空の場合は別の JSX を返す</span>
+<span class="kw">if</span> (items.length === <span class="num">0</span>) {
+  <span class="kw">return</span> <span class="tag">&lt;p&gt;</span>商品が登録されていません<span class="tag">&lt;/p&gt;</span>;
+}
+<span class="kw">return</span> <span class="tag">&lt;ul&gt;</span>{items.<span class="fn">map</span>(...)}<span class="tag">&lt;/ul&gt;</span>;</code></pre>
+    </div>
+  </section>
+
+  <!-- 7. React のデータフロー -->
+  <section>
+    <h2>7. React のデータフロー（全体像）</h2>
+    <div class="card">
+      <p style="margin-bottom: 1rem; font-size:0.9rem;">React のデータは常に<strong>親 → 子の一方向</strong>に流れます。</p>
+      <div class="flow" style="flex-direction: column; align-items: flex-start; gap: 0.5rem;">
+        <div style="display:flex; align-items:center; gap:0.75rem; width:100%;">
+          <div class="flow-step flow-step-react" style="min-width:160px; text-align:center;">App（親）<br><small style="font-weight:400; color:var(--muted);">state を持つ</small></div>
+          <span class="flow-arrow">→</span>
+          <span style="font-size:0.85rem; color:var(--muted);">Props でデータを渡す</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:0.75rem; width:100%; padding-left:2rem;">
+          <div class="flow-step" style="min-width:160px; text-align:center;">ItemList（子）<br><small style="font-weight:400; color:var(--muted);">items を受け取る</small></div>
+          <span class="flow-arrow">→</span>
+          <span style="font-size:0.85rem; color:var(--muted);">さらに Props を渡す</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:0.75rem; width:100%; padding-left:4rem;">
+          <div class="flow-step" style="min-width:160px; text-align:center;">ItemCard（孫）<br><small style="font-weight:400; color:var(--muted);">name, qty を受け取る</small></div>
+        </div>
+      </div>
+      <p style="margin-top:1rem; font-size:0.85rem; color:var(--muted);">
+        子から親へのデータ伝達が必要なときは「コールバック関数を Props で渡す」パターンを使います（Day5 以降で扱います）。
+      </p>
+    </div>
+  </section>
+
+  <!-- 8. Day4 でやること -->
+  <section>
+    <h2>8. Day4 でやること（チェックリスト）</h2>
+    <div class="card">
+      <ul style="list-style:none; padding:0;">
+        <li style="padding: 0.5rem 0; border-bottom:1px solid var(--border); display:flex; gap:0.75rem;">
+          <span style="color:var(--muted);">□</span>
+          <span><code>npm create vite@latest day4-react -- --template react-ts</code> でプロジェクト作成・起動確認</span>
+        </li>
+        <li style="padding: 0.5rem 0; border-bottom:1px solid var(--border); display:flex; gap:0.75rem;">
+          <span style="color:var(--muted);">□</span>
+          <span>Q1: Props に型を付けた <code>ItemCard</code> コンポーネントを作成</span>
+        </li>
+        <li style="padding: 0.5rem 0; border-bottom:1px solid var(--border); display:flex; gap:0.75rem;">
+          <span style="color:var(--muted);">□</span>
+          <span>Q2: Optional Props（<code>?</code>）を使って <code>category</code> を追加</span>
+        </li>
+        <li style="padding: 0.5rem 0; border-bottom:1px solid var(--border); display:flex; gap:0.75rem;">
+          <span style="color:var(--muted);">□</span>
+          <span>Q3: <code>useState</code> で在庫数を増減する <code>StockCounter</code> を実装</span>
+        </li>
+        <li style="padding: 0.5rem 0; border-bottom:1px solid var(--border); display:flex; gap:0.75rem;">
+          <span style="color:var(--muted);">□</span>
+          <span>Q4: テキスト入力をリアルタイム反映する <code>ItemSearch</code> を実装</span>
+        </li>
+        <li style="padding: 0.5rem 0; border-bottom:1px solid var(--border); display:flex; gap:0.75rem;">
+          <span style="color:var(--muted);">□</span>
+          <span>Q5: <code>.map()</code> と <code>key</code> で在庫一覧を表示する <code>ItemList</code> を実装</span>
+        </li>
+        <li style="padding: 0.5rem 0; display:flex; gap:0.75rem;">
+          <span style="color:var(--muted);">□</span>
+          <span>Q6: 空配列のときに「商品が登録されていません」を表示する条件レンダリングを追加</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="callout callout-tip" style="margin-top:0;">
+      <span class="callout-icon">✅</span>
+      <div>各問とも <strong>ブラウザで動作確認</strong>してから回答を記録してください。<code>npm run dev</code> を起動したまま作業すると、保存のたびに自動更新されます。</div>
+    </div>
+  </section>
+
+  <div style="text-align:center; color: var(--muted); font-size:0.82rem; margin-top:3rem; padding-top:1.5rem; border-top:1px solid var(--border);">
+    Day4 React + Vite 導入 — コンポーネント・Props・useState をブラウザで体感する
+  </div>
+
+</div>
+</body>
+</html>
