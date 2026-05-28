@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ジェネリクス（Generics）完全ガイド</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #222534;
+      --border: #2e3147;
+      --text: #e2e4ef;
+      --muted: #7b7f9e;
+      --ts: #3178c6;
+      --ts-light: #5ba0e8;
+      --green: #4ade80;
+      --red: #f87171;
+      --orange: #fb923c;
+      --purple: #a78bfa;
+      --yellow: #fbbf24;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      padding: 2rem 1rem 6rem;
+    }
+
+    .container { max-width: 900px; margin: 0 auto; }
+
+    /* Header */
+    .hero {
+      text-align: center;
+      padding: 3rem 0 2.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 3rem;
+    }
+    .hero-badge {
+      display: inline-block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.3rem 0.9rem;
+      border-radius: 99px;
+      letter-spacing: 0.05em;
+      background: var(--ts);
+      color: #fff;
+      margin-bottom: 1.5rem;
+    }
+    .hero h1 { font-size: 2.2rem; font-weight: 800; margin-bottom: 0.75rem; }
+    .hero h1 span { color: var(--ts-light); }
+    .hero p { color: var(--muted); font-size: 1rem; max-width: 600px; margin: 0 auto; }
+
+    /* TOC */
+    .toc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 3rem;
+    }
+    .toc-title { font-size: 0.8rem; font-weight: 700; color: var(--muted); letter-spacing: 0.08em; margin-bottom: 0.75rem; }
+    .toc ol { padding-left: 1.4rem; }
+    .toc li { margin-bottom: 0.3rem; }
+    .toc a { color: var(--ts-light); text-decoration: none; font-size: 0.9rem; }
+    .toc a:hover { text-decoration: underline; }
+
+    /* Section */
+    section { margin-bottom: 3.5rem; }
+    h2 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      padding-left: 0.75rem;
+      border-left: 3px solid var(--ts);
+      scroll-margin-top: 1rem;
+    }
+    h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--ts-light); margin-top: 1.5rem; }
+    p { margin-bottom: 0.9rem; font-size: 0.95rem; }
+
+    /* Card */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    /* Code */
+    .code-block {
+      border-radius: 8px;
+      overflow: hidden;
+      font-size: 0.82rem;
+      margin-bottom: 1rem;
+    }
+    .code-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.9rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      background: #0d1f35;
+      color: var(--ts-light);
+    }
+    .code-header-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; opacity: 0.7; }
+    pre {
+      background: var(--surface2);
+      padding: 1.1rem 1.25rem;
+      overflow-x: auto;
+      margin: 0;
+      line-height: 1.65;
+    }
+    code { font-family: 'SF Mono', 'Fira Code', Consolas, monospace; }
+    p code, li code, td code {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 0.1em 0.4em;
+      border-radius: 4px;
+      font-size: 0.85em;
+    }
+
+    /* Compare grid */
+    .compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    @media (max-width: 640px) { .compare { grid-template-columns: 1fr; } }
+    .code-header-bad  { background: #2a1010; color: var(--red); }
+    .code-header-good { background: #0e2218; color: var(--green); }
+
+    /* Callout */
+    .callout {
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+    }
+    .callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 0.1rem; }
+    .callout-info  { background: #0d1f35; border: 1px solid #1d3a5c; }
+    .callout-tip   { background: #0e2218; border: 1px solid #1a4a2e; }
+    .callout-warn  { background: #281a08; border: 1px solid #4d3010; }
+
+    /* Chip */
+    .chip {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.15rem 0.6rem;
+      border-radius: 99px;
+      margin-right: 0.3rem;
+      margin-bottom: 0.3rem;
+    }
+    .chip-green  { background: #0e2218; color: var(--green);    border: 1px solid #1a4a2e; }
+    .chip-blue   { background: #0d1f35; color: var(--ts-light); border: 1px solid #1d3a5c; }
+    .chip-purple { background: #1c1535; color: var(--purple);   border: 1px solid #352860; }
+    .chip-orange { background: #28180a; color: var(--orange);   border: 1px solid #4d2e10; }
+    .chip-yellow { background: #28200a; color: var(--yellow);   border: 1px solid #4d3c10; }
+
+    /* Syntax anatomy */
+    .anatomy {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+    .anatomy pre {
+      background: transparent;
+      padding: 0;
+      font-size: 1.05rem;
+      text-align: left;
+      display: inline-block;
+    }
+    .anatomy-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 1.25rem;
+      font-size: 0.8rem;
+    }
+    .anatomy-item { display: flex; align-items: center; gap: 0.4rem; }
+    .anatomy-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+    /* Flow arrow */
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin: 1rem 0;
+      font-size: 0.88rem;
+    }
+    .flow-step {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.35rem 0.85rem;
+    }
+    .flow-arrow { color: var(--muted); font-size: 1rem; }
+
+    /* Table */
+    .data-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    .data-table th {
+      padding: 0.6rem 1rem; text-align: left;
+      font-weight: 700; font-size: 0.78rem; letter-spacing: 0.06em;
+      border-bottom: 1px solid var(--border); color: var(--muted);
+    }
+    .data-table td { padding: 0.65rem 1rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    .data-table tr:last-child td { border-bottom: none; }
+
+    hr { border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }
+    ul { padding-left: 1.4rem; }
+    li { margin-bottom: 0.4rem; font-size: 0.93rem; }
+
+    /* Syntax highlight colors */
+    .kw   { color: #c792ea; }
+    .fn   { color: #82aaff; }
+    .tp   { color: var(--ts-light); }
+    .str  { color: #c3e88d; }
+    .num  { color: #f78c6c; }
+    .cm   { color: #6b7280; }
+    .ok   { color: var(--green); }
+    .err  { color: var(--red); }
+    .hl   { background: rgba(91,160,232,0.12); border-radius: 2px; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-badge">OOP / TypeScript</div>
+    <h1>ジェネリクス（<span>Generics</span>）完全ガイド</h1>
+    <p>「型をパラメータとして受け取る」設計パターンを実例で理解する</p>
+  </div>
+
+  <!-- TOC -->
+  <div class="toc">
+    <div class="toc-title">目次</div>
+    <ol>
+      <li><a href="#what">ジェネリクスとは何か？</a></li>
+      <li><a href="#motivation">なぜ必要なのか ─ 問題提起</a></li>
+      <li><a href="#syntax">基本構文の解剖</a></li>
+      <li><a href="#functions">ジェネリック関数</a></li>
+      <li><a href="#classes">ジェネリッククラス</a></li>
+      <li><a href="#interfaces">ジェネリックインターフェース</a></li>
+      <li><a href="#constraints">型制約（extends）</a></li>
+      <li><a href="#multiple">複数の型パラメータ</a></li>
+      <li><a href="#realworld">実務で使われるパターン</a></li>
+      <li><a href="#summary">まとめ</a></li>
+    </ol>
+  </div>
+
+  <!-- 1. What -->
+  <section id="what">
+    <h2>1. ジェネリクスとは何か？</h2>
+    <p>
+      ジェネリクスとは、<strong>型をパラメータとして受け取る</strong>仕組みです。
+      関数・クラス・インターフェースを定義するとき、具体的な型を後から指定できるようにすることで、
+      <strong>型安全性を保ちながらコードを再利用</strong>できます。
+    </p>
+    <div class="callout callout-info">
+      <div class="callout-icon">💡</div>
+      <div>
+        <strong>一言でいうと：</strong>
+        「どんな型でも扱えるが、使うときには型が決まる」仕組みです。<br>
+        <code>Array&lt;string&gt;</code> や <code>Promise&lt;number&gt;</code> はジェネリクスを使った型の代表例です。
+      </div>
+    </div>
+
+    <h3>ジェネリクスがない世界</h3>
+    <div class="compare">
+      <div>
+        <div class="code-block">
+          <div class="code-header code-header-bad"><div class="code-header-dot"></div>any を使う（型が消える）</div>
+          <pre><code><span class="kw">function</span> <span class="fn">identity</span>(value: <span class="err">any</span>): <span class="err">any</span> {
+  <span class="kw">return</span> value;
+}
+
+<span class="kw">const</span> result = <span class="fn">identity</span>(<span class="str">"hello"</span>);
+<span class="cm">// result の型は any → 補完も型チェックもなし</span>
+result.<span class="err">toFixed</span>(2); <span class="cm">// 実行時にクラッシュ</span></code></pre>
+        </div>
+      </div>
+      <div>
+        <div class="code-block">
+          <div class="code-header code-header-good"><div class="code-header-dot"></div>ジェネリクスを使う</div>
+          <pre><code><span class="kw">function</span> <span class="fn">identity</span>&lt;<span class="tp">T</span>&gt;(value: <span class="tp">T</span>): <span class="tp">T</span> {
+  <span class="kw">return</span> value;
+}
+
+<span class="kw">const</span> result = <span class="fn">identity</span>(<span class="str">"hello"</span>);
+<span class="cm">// result の型は string → 補完・型チェックが働く</span>
+result.<span class="ok">toUpperCase</span>(); <span class="cm">// OK</span>
+result.<span class="err">toFixed</span>(2);    <span class="cm">// コンパイルエラー</span></code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Motivation -->
+  <section id="motivation">
+    <h2>2. なぜ必要なのか ─ 問題提起</h2>
+    <p>「同じロジックだが、扱う型が違う」という状況は頻繁に発生します。</p>
+
+    <h3>問題：型ごとに同じ関数を書き直す羽目になる</h3>
+    <div class="code-block">
+      <div class="code-header"><div class="code-header-dot"></div>without-generics.ts ─ コードが重複する</div>
+      <pre><code><span class="cm">// 数値の配列から最初の要素を返す</span>
+<span class="kw">function</span> <span class="fn">firstNumber</span>(arr: <span class="tp">number</span>[]): <span class="tp">number</span> | <span class="tp">undefined</span> {
+  <span class="kw">return</span> arr[0];
+}
+
+<span class="cm">// 文字列の配列から最初の要素を返す（ロジックは同じ！）</span>
+<span class="kw">function</span> <span class="fn">firstString</span>(arr: <span class="tp">string</span>[]): <span class="tp">string</span> | <span class="tp">undefined</span> {
+  <span class="kw">return</span> arr[0];
+}
+
+<span class="cm">// User の配列から最初の要素を返す（またロジックは同じ…）</span>
+<span class="kw">function</span> <span class="fn">firstUser</span>(arr: <span class="tp">User</span>[]): <span class="tp">User</span> | <span class="tp">undefined</span> {
+  <span class="kw">return</span> arr[0];
+}</code></pre>
+    </div>
+
+    <h3>解決：ジェネリクスで1つにまとめる</h3>
+    <div class="code-block">
+      <div class="code-header code-header-good"><div class="code-header-dot"></div>with-generics.ts</div>
+      <pre><code><span class="kw">function</span> <span class="fn">first</span>&lt;<span class="tp">T</span>&gt;(arr: <span class="tp">T</span>[]): <span class="tp">T</span> | <span class="tp">undefined</span> {
+  <span class="kw">return</span> arr[0];
+}
+
+<span class="fn">first</span>([<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>]);          <span class="cm">// 型: number | undefined</span>
+<span class="fn">first</span>([<span class="str">"a"</span>, <span class="str">"b"</span>]);        <span class="cm">// 型: string | undefined</span>
+<span class="fn">first</span>([{ <span class="fn">id</span>: <span class="num">1</span> }, { <span class="fn">id</span>: <span class="num">2</span> }]); <span class="cm">// 型: { id: number } | undefined</span></code></pre>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-icon">✅</div>
+      <div>
+        ジェネリクスを使うと <strong>DRY（Don't Repeat Yourself）</strong> を守りながら、
+        型安全性を犠牲にしないコードが書けます。
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Syntax -->
+  <section id="syntax">
+    <h2>3. 基本構文の解剖</h2>
+    <p>ジェネリクスは <code>&lt; &gt;</code>（山括弧）の中に<strong>型パラメータ</strong>を書きます。慣習として <code>T</code>、<code>U</code>、<code>K</code>、<code>V</code> などが使われます。</p>
+
+    <div class="anatomy">
+      <pre><code><span class="kw">function</span> <span class="fn" style="color:#fbbf24">wrap</span><span style="color:#a78bfa">&lt;T&gt;</span>(value: <span class="tp" style="color:#5ba0e8">T</span>): <span style="color:#4ade80">{ data: T }</span> {
+  <span class="kw">return</span> { data: value };
+}</code></pre>
+      <div class="anatomy-legend">
+        <div class="anatomy-item"><div class="anatomy-dot" style="background:#fbbf24"></div>関数名</div>
+        <div class="anatomy-item"><div class="anatomy-dot" style="background:#a78bfa"></div>型パラメータ宣言</div>
+        <div class="anatomy-item"><div class="anatomy-dot" style="background:#5ba0e8"></div>型パラメータの使用（引数）</div>
+        <div class="anatomy-item"><div class="anatomy-dot" style="background:#4ade80"></div>型パラメータの使用（戻り値）</div>
+      </div>
+    </div>
+
+    <h3>型パラメータの命名慣習</h3>
+    <div class="card">
+      <table class="data-table">
+        <thead>
+          <tr><th>名前</th><th>典型的な用途</th><th>例</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="chip chip-blue">T</span></td>
+            <td>汎用の型（Type）</td>
+            <td><code>Array&lt;T&gt;</code>, <code>Promise&lt;T&gt;</code></td>
+          </tr>
+          <tr>
+            <td><span class="chip chip-purple">K, V</span></td>
+            <td>キー（Key）と値（Value）</td>
+            <td><code>Map&lt;K, V&gt;</code>, <code>Record&lt;K, V&gt;</code></td>
+          </tr>
+          <tr>
+            <td><span class="chip chip-orange">E</span></td>
+            <td>要素（Element）</td>
+            <td><code>Set&lt;E&gt;</code></td>
+          </tr>
+          <tr>
+            <td><span class="chip chip-green">R</span></td>
+            <td>戻り値（Return type）</td>
+            <td><code>(...args: any[]) =&gt; R</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>型推論が働くケース</h3>
+    <div class="code-block">
+      <div class="code-header"><div class="code-header-dot"></div>型推論（引数から T が自動決定される）</div>
+      <pre><code><span class="kw">function</span> <span class="fn">wrap</span>&lt;<span class="tp">T</span>&gt;(value: <span class="tp">T</span>): { data: <span class="tp">T</span> } {
+  <span class="kw">return</span> { data: value };
+}
+
+<span class="cm">// 明示的に型を指定する場合</span>
+<span class="fn">wrap</span>&lt;<span class="tp">string</span>&gt;(<span class="str">"hello"</span>);
+
+<span class="cm">// 型推論に任せる（推奨）─ 引数の型から T = string が決まる</span>
+<span class="fn">wrap</span>(<span class="str">"hello"</span>);  <span class="cm">// T は string と推論される</span>
+<span class="fn">wrap</span>(<span class="num">42</span>);       <span class="cm">// T は number と推論される</span>
+<span class="fn">wrap</span>({ <span class="fn">id</span>: <span class="num">1</span> }); <span class="cm">// T は { id: number } と推論される</span></code></pre>
+    </div>
+  </section>
+
+  <!-- 4. Generic Functions -->
+  <section id="functions">
+    <h2>4. ジェネリック関数</h2>
+
+    <h3>例1：配列操作ユーティリティ</h3>
+    <div class="code-block">
+      <div class="code-header"><div class="code-header-dot"></div>array-utils.ts</div>
+      <pre><code><span class="cm">// 配列をシャッフルして返す</span>
+<span class="kw">function</span> <span class="fn">shuffle</span>&lt;<span class="tp">T</span>&gt;(arr: <span class="tp">T</span>[]): <span class="tp">T</span>[] {
+  <span class="kw">return</span> [...arr].<span class="fn">sort</span>(() => <span class="tp">Math</span>.<span class="fn">random</span>() - <span class="num">0.5</span>);
+}
+
+<span class="cm">// 配列から重複を除く</span>
+<span class="kw">function</span> <span class="fn">unique</span>&lt;<span class="tp">T</span>&gt;(arr: <span class="tp">T</span>[]): <span class="tp">T</span>[] {
+  <span class="kw">return</span> [...<span class="kw">new</span> <span class="tp">Set</span>(arr)];
+}
+
+<span class="cm">// 配列をグループ化する</span>
+<span class="kw">function</span> <span class="fn">groupBy</span>&lt;<span class="tp">T</span>, <span class="tp">K</span> <span class="kw">extends</span> <span class="tp">string</span> | <span class="tp">number</span>&gt;(
+  arr: <span class="tp">T</span>[],
+  keyFn: (item: <span class="tp">T</span>) => <span class="tp">K</span>
+): <span class="tp">Record</span>&lt;<span class="tp">K</span>, <span class="tp">T</span>[]&gt; {
+  <span class="kw">return</span> arr.<span class="fn">reduce</span>((acc, item) => {
+    <span class="kw">const</span> key = <span class="fn">keyFn</span>(item);
+    acc[key] = [...(acc[key] ?? []), item];
+    <span class="kw">return</span> acc;
+  }, {} <span class="kw">as</span> <span class="tp">Record</span>&lt;<span class="tp">K</span>, <span class="tp">T</span>[]&gt;);
+}
+
+<span class="cm">// --- 使い方 ---</span>
+<span class="kw">const</span> users = [
+  { name: <span class="str">"Alice"</span>, role: <span class="str">"admin"</span> },
+  { name: <span class="str">"Bob"</span>,   role: <span class="str">"user"</span>  },
+  { name: <span class="str">"Carol"</span>, role: <span class="str">"admin"</span> },
+];
+
+<span class="kw">const</span> grouped = <span class="fn">groupBy</span>(users, u => u.role);
+<span class="cm">// { admin: [{name:"Alice",...}, {name:"Carol",...}], user: [{name:"Bob",...}] }</span></code></pre>
+    </div>
+
+    <h3>例2：API レスポンスのラッパー関数</h3>
+    <div class="code-block">
+      <div class="code-header"><div class="code-header-dot"></div>api-helpers.ts</div>
+      <pre><code><span class="kw">type</span> <span class="tp">ApiResponse</span>&lt;<span class="tp">T</span>&gt; = {
+  data: <span class="tp">T</span>;
+  status: <span class="tp">number</span>;
+  message: <span class="tp">string</span>;
+};
+
+<span class="kw">async function</span> <span class="fn">fetchJson</span>&lt;<span class="tp">T</span>&gt;(url: <span class="tp">string</span>): <span class="tp">Promise</span>&lt;<span class="tp">ApiResponse</span>&lt;<span class="tp">T</span>&gt;&gt; {
+  <span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(url);
+  <span class="kw">const</span> data: <span class="tp">T</span> = <span class="kw">await</span> res.<span class="fn">json</span>();
+  <span class="kw">return</span> { data, status: res.status, message: <span class="str">"ok"</span> };
+}
+
+<span class="cm">// --- 使い方 ---</span>
+<span class="kw">type</span> <span class="tp">Product</span> = { id: <span class="tp">number</span>; name: <span class="tp">string</span>; price: <span class="tp">number</span> };
+
+<span class="kw">const</span> result = <span class="kw">await</span> <span class="fn">fetchJson</span>&lt;<span class="tp">Product</span>&gt;(<span class="str">"/api/products/1"</span>);
+<span class="cm">// result.data は Product 型として補完される</span>
+<span class="fn">console</span>.<span class="fn">log</span>(result.data.<span class="ok">price</span>); <span class="cm">// OK</span>
+<span class="fn">console</span>.<span class="fn">log</span>(result.data.<span class="err">stock</span>); <span class="cm">// コンパイルエラー（Product に stock はない）</span></code></pre>
+    </div>
+  </section>
+
+  <!-- 5. Generic Classes -->
+  <section id="classes">
+    <h2>5. ジェネリッククラス</h2>
+    <p>クラスにも型パラメータを付けることができます。<strong>データ構造</strong>や<strong>リポジトリパターン</strong>で特に活躍します。</p>
+
+    <h3>例1：スタック（Stack）データ構造</h3>
+    <div class="code-block">
+      <div class="code-header"><div class="code-header-dot"></div>stack.ts</div>
+      <pre><code><span class="kw">class</span> <span class="tp">Stack</span>&lt;<span class="tp">T</span>&gt; {
+  <span class="kw">private</span> items: <span class="tp">T</span>[] = [];
+
+  <span class="fn">push</span>(item: <span class="tp">T</span>): <span class="tp">void</span> {
+    <span class="kw">this</span>.items.<span class="fn">push</span>(item);
+  }
+
+  <span class="fn">pop</span>(): <span class="tp">T</span> | <span class="tp">undefined</span> {
+    <span class="kw">return</span> <span class="kw">this</span>.items.<span class="fn">pop</span>();
+  }
+
+  <span class="fn">peek</span>(): <span class="tp">T</span> | <span class="tp">undefined</span> {
+    <span class="kw">return</span> <span class="kw">this</span>.items[<span class="kw">this</span>.items.length - <span class="num">1</span>];
+  }
+
+  <span class="fn">isEmpty</span>(): <span class="tp">boolean</span> {
+    <span class="kw">return</span> <span class="kw">this</span>.items.length === <span class="num">0</span>;
+  }
+}
+
+<span class="cm">// --- 使い方 ---</span>
+<span class="kw">const</span> numStack = <span class="kw">new</span> <span class="tp">Stack</span>&lt;<span class="tp">number</span>&gt;();
+numStack.<span class="fn">push</span>(<span class="num">1</span>);
+numStack.<span class="fn">push</span>(<span class="num">2</span>);
+numStack.<span class="fn">push</span>(<span class="str">"3"</span>); <span class="cm">// コンパイルエラー！ string は入れられない</span>
+
+<span class="kw">const</span> strStack = <span class="kw">new</span> <span class="tp">Stack</span>&lt;<span class="tp">string</span>&gt;();
+strStack.<span class="fn">push</span>(<span class="str">"hello"</span>);
+strStack.<span class="fn">push</span>(<span class="str">"world"</span>);
+strStack.<span class="fn">pop</span>(); <span class="cm">// "world"（型は string）</span></code></pre>
+    </div>
+
+    <h3>例2：汎用リポジトリクラス（実務パターン）</h3>
+    <div class="code-block">
+      <div class="code-header"><div class="code-header-dot"></div>repository.ts ─ 在庫管理システムのイメージ</div>
+      <pre><code><span class="kw">interface</span> <span class="tp">Entity</span> {
+  id: <span class="tp">number</span>;
+}
+
+<span class="kw">class</span> <span class="tp">Repository</span>&lt;<span class="tp">T</span> <span class="kw">extends</span> <span class="tp">Entity</span>&gt; {
+  <span class="kw">private</span> store: <span class="tp">Map</span>&lt;<span class="tp">number</span>, <span class="tp">T</span>&gt; = <span class="kw">new</span> <span class="tp">Map</span>();
+
+  <span class="fn">save</span>(entity: <span class="tp">T</span>): <span class="tp">T</span> {
+    <span class="kw">this</span>.store.<span class="fn">set</span>(entity.id, entity);
+    <span class="kw">return</span> entity;
+  }
+
+  <span class="fn">findById</span>(id: <span class="tp">number</span>): <span class="tp">T</span> | <span class="tp">undefined</span> {
+    <span class="kw">return</span> <span class="kw">this</span>.store.<span class="fn">get</span>(id);
+  }
+
+  <span class="fn">findAll</span>(): <span class="tp">T</span>[] {
+    <span class="kw">return</span> [...<span class="kw">this</span>.store.<span class="fn">values</span>()];
+  }
+
+  <span class="fn">delete</span>(id: <span class="tp">number</span>): <span class="tp">boolean</span> {
+    <span class="kw">return</span> <span class="kw">this</span>.store.<span class="fn">delete</span>(id);
+  }
+}
+
+<span class="cm">// --- エンティティの定義 ---</span>
+<span class="kw">interface</span> <span class="tp">Product</span> <span class="kw">extends</span> <span class="tp">Entity</span> {
+  name: <span class="tp">string</span>;
+  price: <span class="tp">number</span>;
+  stock: <span class="tp">number</span>;
+}
+
+<span class="kw">interface</span> <span class="tp">Supplier</span> <span class="kw">extends</span> <span class="tp">Entity</span> {
+  company: <span class="tp">string</span>;
+  email: <span class="tp">string</span>;
+}
+
+<span class="cm">// 同じ Repository クラスを Product / Supplier 両方に使い回せる</span>
+<span class="kw">const</span> productRepo = <span class="kw">new</span> <span class="tp">Repository</span>&lt;<span class="tp">Product</span>&gt;();
+<span class="kw">const</span> supplierRepo = <span class="kw">new</span> <span class="tp">Repository</span>&lt;<span class="tp">Supplier</span>&gt;();
+
+productRepo.<span class="fn">save</span>({ id: <span class="num">1</span>, name: <span class="str">"商品A"</span>, price: <span class="num">1000</span>, stock: <span class="num">50</span> });
+<span class="kw">const</span> product = productRepo.<span class="fn">findById</span>(<span class="num">1</span>);
+<span class="fn">console</span>.<span class="fn">log</span>(product?.<span class="ok">price</span>);  <span class="cm">// OK: number 型</span>
+<span class="fn">console</span>.<span class="fn">log</span>(product?.<span class="err">email</span>);  <span class="cm">// コンパイルエラー（Product に email はない）</span></code></pre>
+    </div>
+  </section>
+
+  <!-- 6. Generic Interfaces -->
+  <section id="interfaces">
+    <h2>6. ジェネリックインターフェース</h2>
+    <p>インターフェースにもジェネリクスを付けることで、<strong>汎用的な契約（型の形）</strong>を定義できます。</p>
+
+    <div class="code-block">
+      <div class="code-header"><div class="code-header-dot"></div>interfaces.ts</div>
+      <pre><code><span class="cm">// ページネーション付きレスポンス</span>
+<span class="kw">interface</span> <span class="tp">PaginatedResult</span>&lt;<span class="tp">T</span>&gt; {
+  items: <span class="tp">T</span>[];
+  total: <span class="tp">number</span>;
+  page: <span class="tp">number</span>;
+  perPage: <span class="tp">number</span>;
+}
+
+<span class="cm">// 非同期のサービス層インターフェース</span>
+<span class="kw">interface</span> <span class="tp">CrudService</span>&lt;<span class="tp">T</span>, <span class="tp">CreateDto</span>, <span class="tp">UpdateDto</span>&gt; {
+  <span class="fn">findAll</span>(page: <span class="tp">number</span>): <span class="tp">Promise</span>&lt;<span class="tp">PaginatedResult</span>&lt;<span class="tp">T</span>&gt;&gt;;
+  <span class="fn">findById</span>(id: <span class="tp">number</span>): <span class="tp">Promise</span>&lt;<span class="tp">T</span> | <span class="tp">null</span>&gt;;
+  <span class="fn">create</span>(dto: <span class="tp">CreateDto</span>): <span class="tp">Promise</span>&lt;<span class="tp">T</span>&gt;;
+  <span class="fn">update</span>(id: <span class="tp">number</span>, dto: <span class="tp">UpdateDto</span>): <span class="tp">Promise</span>&lt;<span class="tp">T</span>&gt;;
+  <span class="fn">delete</span>(id: <span class="tp">number</span>): <span class="tp">Promise</span>&lt;<span class="tp">void</span>&gt;;
+}
+
+<span class="cm">// --- 具体的なサービスに適用 ---</span>
+<span class="kw">type</span> <span class="tp">Product</span> = { id: <span class="tp">number</span>; name: <span class="tp">string</span>; price: <span class="tp">number</span> };
+<span class="kw">type</span> <span class="tp">CreateProductDto</span> = <span class="tp">Omit</span>&lt;<span class="tp">Product</span>, <span class="str">"id"</span>&gt;;
+<span class="kw">type</span> <span class="tp">UpdateProductDto</span> = <span class="tp">Partial</span>&lt;<span class="tp">CreateProductDto</span>&gt;;
+
+<span class="kw">class</span> <span class="tp">ProductService</span> <span class="kw">implements</span> <span class="tp">CrudService</span>&lt;<span class="tp">Product</span>, <span class="tp">CreateProductDto</span>, <span class="tp">UpdateProductDto</span>&gt; {
+  <span class="kw">async</span> <span class="fn">findAll</span>(page: <span class="tp">number</span>) { <span class="cm">/* 実装 */</span> <span class="kw">return</span> {} <span class="kw">as</span> <span class="kw">any</span>; }
+  <span class="kw">async</span> <span class="fn">findById</span>(id: <span class="tp">number</span>) { <span class="cm">/* 実装 */</span> <span class="kw">return</span> <span class="kw">null</span>; }
+  <span class="kw">async</span> <span class="fn">create</span>(dto: <span class="tp">CreateProductDto</span>) { <span class="cm">/* 実装 */</span> <span class="kw">return</span> {} <span class="kw">as</span> <span class="kw">any</span>; }
+  <span class="kw">async</span> <span class="fn">update</span>(id: <span class="tp">number</span>, dto: <span class="tp">UpdateProductDto</span>) { <span class="cm">/* 実装 */</span> <span class="kw">return</span> {} <span class="kw">as</span> <span class="kw">any</span>; }
+  <span class="kw">async</span> <span class="fn">delete</span>(id: <span class="tp">number</span>) { <span class="cm">/* 実装 */</span> }
+}</code></pre>
+    </div>
+  </section>
+
+  <!-- 7. Constraints -->
+  <section id="constraints">
+    <h2>7. 型制約（extends）</h2>
+    <p>
+      型パラメータに <code>extends</code> を付けることで、<strong>「T はこの型を満たすもの限定」</strong>という制約をかけられます。
+      制約があると、T のプロパティを安全にアクセスできます。
+    </p>
+
+    <h3>問題：制約なしでは T のプロパティにアクセスできない</h3>
+    <div class="code-block">
+      <div class="code-header code-header-bad"><div class="code-header-dot"></div>制約なし → エラー</div>
+      <pre><code><span class="kw">function</span> <span class="fn">printName</span>&lt;<span class="tp">T</span>&gt;(obj: <span class="tp">T</span>): <span class="tp">void</span> {
+  <span class="fn">console</span>.<span class="fn">log</span>(obj.<span class="err">name</span>); <span class="cm">// エラー: T に name があるか不明</span>
+}</code></pre>
+    </div>
+
+    <h3>解決：extends で制約を付ける</h3>
+    <div class="code-block">
+      <div class="code-header code-header-good"><div class="code-header-dot"></div>制約あり → OK</div>
+      <pre><code><span class="kw">interface</span> <span class="tp">HasName</span> {
+  name: <span class="tp">string</span>;
+}
+
+<span class="cm">// T は HasName を満たす型でないといけない</span>
+<span class="kw">function</span> <span class="fn">printName</span>&lt;<span class="tp">T</span> <span class="kw">extends</span> <span class="tp">HasName</span>&gt;(obj: <span class="tp">T</span>): <span class="tp">void</span> {
+  <span class="fn">console</span>.<span class="fn">log</span>(obj.<span class="ok">name</span>); <span class="cm">// OK: T は必ず name を持つ</span>
+}
+
+<span class="fn">printName</span>({ name: <span class="str">"Alice"</span>, age: <span class="num">30</span> }); <span class="cm">// OK</span>
+<span class="fn">printName</span>({ <span class="err">id</span>: <span class="num">1</span> });                  <span class="cm">// エラー: name がない</span></code></pre>
+    </div>
+
+    <h3>実例：オブジェクトの特定キーの値を取得</h3>
+    <div class="code-block">
+      <div class="code-header"><div class="code-header-dot"></div>keyof による制約</div>
+      <pre><code><span class="cm">// K は T のキーでないといけない</span>
+<span class="kw">function</span> <span class="fn">getProperty</span>&lt;<span class="tp">T</span>, <span class="tp">K</span> <span class="kw">extends</span> <span class="kw">keyof</span> <span class="tp">T</span>&gt;(obj: <span class="tp">T</span>, key: <span class="tp">K</span>): <span class="tp">T</span>[<span class="tp">K</span>] {
+  <span class="kw">return</span> obj[key];
+}
+
+<span class="kw">const</span> product = { id: <span class="num">1</span>, name: <span class="str">"商品A"</span>, price: <span class="num">1000</span>, stock: <span class="num">50</span> };
+
+<span class="fn">getProperty</span>(product, <span class="str">"name"</span>);   <span class="cm">// OK: 戻り値は string</span>
+<span class="fn">getProperty</span>(product, <span class="str">"price"</span>);  <span class="cm">// OK: 戻り値は number</span>
+<span class="fn">getProperty</span>(product, <span class="str"><span class="err">"email"</span></span>);  <span class="cm">// エラー: "email" は Product のキーではない</span></code></pre>
+    </div>
+
+    <h3>実例：ソート可能な配列</h3>
+    <div class="code-block">
+      <div class="code-header"><div class="code-header-dot"></div>sortBy.ts</div>
+      <pre><code><span class="kw">function</span> <span class="fn">sortBy</span>&lt;<span class="tp">T</span>, <span class="tp">K</span> <span class="kw">extends</span> <span class="kw">keyof</span> <span class="tp">T</span>&gt;(arr: <span class="tp">T</span>[], key: <span class="tp">K</span>): <span class="tp">T</span>[] {
+  <span class="kw">return</span> [...arr].<span class="fn">sort</span>((a, b) => {
+    <span class="kw">if</span> (a[key] &lt; b[key]) <span class="kw">return</span> -<span class="num">1</span>;
+    <span class="kw">if</span> (a[key] &gt; b[key]) <span class="kw">return</span> <span class="num">1</span>;
+    <span class="kw">return</span> <span class="num">0</span>;
+  });
+}
+
+<span class="kw">const</span> products = [
+  { id: <span class="num">3</span>, name: <span class="str">"C商品"</span>, price: <span class="num">300</span> },
+  { id: <span class="num">1</span>, name: <span class="str">"A商品"</span>, price: <span class="num">100</span> },
+  { id: <span class="num">2</span>, name: <span class="str">"B商品"</span>, price: <span class="num">200</span> },
+];
+
+<span class="fn">sortBy</span>(products, <span class="str">"price"</span>);  <span class="cm">// 価格順</span>
+<span class="fn">sortBy</span>(products, <span class="str">"name"</span>);   <span class="cm">// 名前順</span>
+<span class="fn">sortBy</span>(products, <span class="str"><span class="err">"stock"</span></span>);  <span class="cm">// エラー: products に stock はない</span></code></pre>
+    </div>
+  </section>
+
+  <!-- 8. Multiple Type Parameters -->
+  <section id="multiple">
+    <h2>8. 複数の型パラメータ</h2>
+    <p>型パラメータはカンマ区切りで複数定義できます。</p>
+
+    <div class="code-block">
+      <div class="code-header"><div class="code-header-dot"></div>multiple-params.ts</div>
+      <pre><code><span class="cm">// 2つの値をペアにする</span>
+<span class="kw">function</span> <span class="fn">pair</span>&lt;<span class="tp">A</span>, <span class="tp">B</span>&gt;(first: <span class="tp">A</span>, second: <span class="tp">B</span>): [<span class="tp">A</span>, <span class="tp">B</span>] {
+  <span class="kw">return</span> [first, second];
+}
+
+<span class="fn">pair</span>(<span class="str">"Alice"</span>, <span class="num">30</span>);     <span class="cm">// [string, number]</span>
+<span class="fn">pair</span>(<span class="num">true</span>, [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>]); <span class="cm">// [boolean, number[]]</span>
+
+<span class="cm">// -----------------------------------</span>
+
+<span class="cm">// キーと値の型を分けて管理するキャッシュクラス</span>
+<span class="kw">class</span> <span class="tp">Cache</span>&lt;<span class="tp">K</span>, <span class="tp">V</span>&gt; {
+  <span class="kw">private</span> map = <span class="kw">new</span> <span class="tp">Map</span>&lt;<span class="tp">K</span>, <span class="tp">V</span>&gt;();
+
+  <span class="fn">set</span>(key: <span class="tp">K</span>, value: <span class="tp">V</span>): <span class="tp">void</span> {
+    <span class="kw">this</span>.map.<span class="fn">set</span>(key, value);
+  }
+
+  <span class="fn">get</span>(key: <span class="tp">K</span>): <span class="tp">V</span> | <span class="tp">undefined</span> {
+    <span class="kw">return</span> <span class="kw">this</span>.map.<span class="fn">get</span>(key);
+  }
+}
+
+<span class="kw">const</span> userCache = <span class="kw">new</span> <span class="tp">Cache</span>&lt;<span class="tp">number</span>, <span class="tp">User</span>&gt;();
+userCache.<span class="fn">set</span>(<span class="num">1</span>, { id: <span class="num">1</span>, name: <span class="str">"Alice"</span> });
+<span class="kw">const</span> user = userCache.<span class="fn">get</span>(<span class="num">1</span>); <span class="cm">// 型: User | undefined</span>
+
+<span class="cm">// -----------------------------------</span>
+
+<span class="cm">// 変換関数（入力と出力の型が異なる）</span>
+<span class="kw">function</span> <span class="fn">transform</span>&lt;<span class="tp">Input</span>, <span class="tp">Output</span>&gt;(
+  items: <span class="tp">Input</span>[],
+  fn: (item: <span class="tp">Input</span>) => <span class="tp">Output</span>
+): <span class="tp">Output</span>[] {
+  <span class="kw">return</span> items.<span class="fn">map</span>(fn);
+}
+
+<span class="kw">const</span> names = <span class="fn">transform</span>(
+  [{ id: <span class="num">1</span>, name: <span class="str">"Alice"</span> }, { id: <span class="num">2</span>, name: <span class="str">"Bob"</span> }],
+  user => user.name
+);
+<span class="cm">// names: string[]  ← User[] を string[] に変換</span></code></pre>
+    </div>
+  </section>
+
+  <!-- 9. Real world -->
+  <section id="realworld">
+    <h2>9. 実務で使われるパターン</h2>
+
+    <h3>パターン1：Result 型（エラーハンドリング）</h3>
+    <p>例外を投げずに成功・失敗を型で表現する「Result パターン」はジェネリクスの定番活用です。</p>
+    <div class="code-block">
+      <div class="code-header"><div class="code-header-dot"></div>result.ts</div>
+      <pre><code><span class="kw">type</span> <span class="tp">Result</span>&lt;<span class="tp">T</span>, <span class="tp">E</span> = <span class="tp">Error</span>&gt; =
+  | { ok: <span class="kw">true</span>;  value: <span class="tp">T</span> }
+  | { ok: <span class="kw">false</span>; error: <span class="tp">E</span> };
+
+<span class="kw">async function</span> <span class="fn">safeParseProduct</span>(id: <span class="tp">number</span>): <span class="tp">Promise</span>&lt;<span class="tp">Result</span>&lt;<span class="tp">Product</span>&gt;&gt; {
+  <span class="kw">try</span> {
+    <span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">`/api/products/<span class="tp">${id}</span>`</span>);
+    <span class="kw">if</span> (!res.ok) <span class="kw">return</span> { ok: <span class="kw">false</span>, error: <span class="kw">new</span> <span class="tp">Error</span>(<span class="str">"Not Found"</span>) };
+    <span class="kw">const</span> data: <span class="tp">Product</span> = <span class="kw">await</span> res.<span class="fn">json</span>();
+    <span class="kw">return</span> { ok: <span class="kw">true</span>, value: data };
+  } <span class="kw">catch</span> (e) {
+    <span class="kw">return</span> { ok: <span class="kw">false</span>, error: e <span class="kw">as</span> <span class="tp">Error</span> };
+  }
+}
+
+<span class="cm">// --- 使い方 ---</span>
+<span class="kw">const</span> result = <span class="kw">await</span> <span class="fn">safeParseProduct</span>(<span class="num">1</span>);
+<span class="kw">if</span> (result.ok) {
+  <span class="fn">console</span>.<span class="fn">log</span>(result.value.<span class="ok">name</span>); <span class="cm">// Product 型として確定</span>
+} <span class="kw">else</span> {
+  <span class="fn">console</span>.<span class="fn">error</span>(result.error.<span class="ok">message</span>); <span class="cm">// Error 型として確定</span>
+}</code></pre>
+    </div>
+
+    <h3>パターン2：フォームバリデーション</h3>
+    <div class="code-block">
+      <div class="code-header"><div class="code-header-dot"></div>validation.ts</div>
+      <pre><code><span class="kw">type</span> <span class="tp">ValidationResult</span>&lt;<span class="tp">T</span>&gt; = {
+  isValid: <span class="tp">boolean</span>;
+  data?: <span class="tp">T</span>;
+  errors: <span class="tp">Partial</span>&lt;<span class="tp">Record</span>&lt;<span class="kw">keyof</span> <span class="tp">T</span>, <span class="tp">string</span>&gt;&gt;;
+};
+
+<span class="kw">function</span> <span class="fn">validate</span>&lt;<span class="tp">T</span>&gt;(
+  input: <span class="tp">Partial</span>&lt;<span class="tp">T</span>&gt;,
+  rules: { [<span class="tp">K</span> <span class="kw">in</span> <span class="kw">keyof</span> <span class="tp">T</span>]?: (v: <span class="kw">unknown</span>) => <span class="tp">string</span> | <span class="kw">null</span> }
+): <span class="tp">ValidationResult</span>&lt;<span class="tp">T</span>&gt; {
+  <span class="kw">const</span> errors: <span class="kw">any</span> = {};
+  <span class="kw">for</span> (<span class="kw">const</span> key <span class="kw">in</span> rules) {
+    <span class="kw">const</span> error = rules[key]?.(input[key]);
+    <span class="kw">if</span> (error) errors[key] = error;
+  }
+  <span class="kw">const</span> isValid = <span class="tp">Object</span>.<span class="fn">keys</span>(errors).length === <span class="num">0</span>;
+  <span class="kw">return</span> { isValid, data: isValid ? input <span class="kw">as</span> <span class="tp">T</span> : <span class="kw">undefined</span>, errors };
+}
+
+<span class="cm">// --- 使い方 ---</span>
+<span class="kw">type</span> <span class="tp">CreateProductForm</span> = { name: <span class="tp">string</span>; price: <span class="tp">number</span> };
+
+<span class="kw">const</span> result = <span class="fn">validate</span>&lt;<span class="tp">CreateProductForm</span>&gt;(
+  { name: <span class="str">""</span>, price: -<span class="num">100</span> },
+  {
+    name:  v => !v ? <span class="str">"名前は必須です"</span> : <span class="kw">null</span>,
+    price: v => (<span class="kw">typeof</span> v === <span class="str">"number"</span> && v &lt; <span class="num">0</span>) ? <span class="str">"価格は0以上"</span> : <span class="kw">null</span>,
+  }
+);</code></pre>
+    </div>
+
+    <h3>パターン3：イベントエミッター</h3>
+    <div class="code-block">
+      <div class="code-header"><div class="code-header-dot"></div>event-emitter.ts</div>
+      <pre><code><span class="kw">class</span> <span class="tp">TypedEventEmitter</span>&lt;<span class="tp">Events</span> <span class="kw">extends</span> <span class="tp">Record</span>&lt;<span class="tp">string</span>, <span class="kw">unknown</span>&gt;&gt; {
+  <span class="kw">private</span> listeners = <span class="kw">new</span> <span class="tp">Map</span>&lt;<span class="tp">string</span>, <span class="tp">Function</span>[]&gt;();
+
+  <span class="fn">on</span>&lt;<span class="tp">K</span> <span class="kw">extends</span> <span class="kw">keyof</span> <span class="tp">Events</span>&gt;(event: <span class="tp">K</span>, fn: (data: <span class="tp">Events</span>[<span class="tp">K</span>]) => <span class="tp">void</span>): <span class="tp">void</span> {
+    <span class="kw">const</span> existing = <span class="kw">this</span>.listeners.<span class="fn">get</span>(event <span class="kw">as</span> <span class="tp">string</span>) ?? [];
+    <span class="kw">this</span>.listeners.<span class="fn">set</span>(event <span class="kw">as</span> <span class="tp">string</span>, [...existing, fn]);
+  }
+
+  <span class="fn">emit</span>&lt;<span class="tp">K</span> <span class="kw">extends</span> <span class="kw">keyof</span> <span class="tp">Events</span>&gt;(event: <span class="tp">K</span>, data: <span class="tp">Events</span>[<span class="tp">K</span>]): <span class="tp">void</span> {
+    <span class="kw">this</span>.listeners.<span class="fn">get</span>(event <span class="kw">as</span> <span class="tp">string</span>)?.<span class="fn">forEach</span>(fn => <span class="fn">fn</span>(data));
+  }
+}
+
+<span class="cm">// --- 使い方（在庫管理のイベント）---</span>
+<span class="kw">type</span> <span class="tp">InventoryEvents</span> = {
+  <span class="str">"stock:updated"</span>:  { productId: <span class="tp">number</span>; newStock: <span class="tp">number</span> };
+  <span class="str">"order:created"</span>:  { orderId: <span class="tp">number</span>; items: <span class="tp">number</span>[] };
+  <span class="str">"alert:low-stock"</span>: { productId: <span class="tp">number</span>; remaining: <span class="tp">number</span> };
+};
+
+<span class="kw">const</span> emitter = <span class="kw">new</span> <span class="tp">TypedEventEmitter</span>&lt;<span class="tp">InventoryEvents</span>&gt;();
+
+emitter.<span class="fn">on</span>(<span class="str">"stock:updated"</span>, ({ productId, newStock }) => {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">`商品 <span class="tp">${productId}</span>: 在庫 <span class="tp">${newStock}</span> 個に更新`</span>);
+});
+
+emitter.<span class="fn">emit</span>(<span class="str">"stock:updated"</span>, { productId: <span class="num">1</span>, newStock: <span class="num">42</span> }); <span class="cm">// OK</span>
+emitter.<span class="fn">emit</span>(<span class="str">"stock:updated"</span>, { productId: <span class="num">1</span>, <span class="err">quantity</span>: <span class="num">42</span> }); <span class="cm">// エラー</span></code></pre>
+    </div>
+  </section>
+
+  <!-- 10. Summary -->
+  <section id="summary">
+    <h2>10. まとめ</h2>
+
+    <div class="card">
+      <table class="data-table">
+        <thead>
+          <tr><th>構文</th><th>書き方</th><th>用途</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="chip chip-blue">ジェネリック関数</span></td>
+            <td><code>function f&lt;T&gt;(x: T): T</code></td>
+            <td>汎用ユーティリティ・API ラッパー</td>
+          </tr>
+          <tr>
+            <td><span class="chip chip-purple">ジェネリッククラス</span></td>
+            <td><code>class C&lt;T&gt; { ... }</code></td>
+            <td>データ構造・リポジトリパターン</td>
+          </tr>
+          <tr>
+            <td><span class="chip chip-green">ジェネリック型/I/F</span></td>
+            <td><code>interface I&lt;T&gt; { data: T }</code></td>
+            <td>API レスポンス型・サービス契約</td>
+          </tr>
+          <tr>
+            <td><span class="chip chip-orange">型制約</span></td>
+            <td><code>T extends HasId</code></td>
+            <td>プロパティアクセスを安全に行う</td>
+          </tr>
+          <tr>
+            <td><span class="chip chip-yellow">keyof 制約</span></td>
+            <td><code>K extends keyof T</code></td>
+            <td>動的なキーアクセス・ソート・フィルタ</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="flow" style="margin-top: 1.5rem;">
+      <div class="flow-step">型の重複に気づく</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">型パラメータ <code>T</code> で抽象化</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">必要なら <code>extends</code> で制約</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">型安全なコードの再利用</div>
+    </div>
+
+    <div class="callout callout-tip" style="margin-top: 1.5rem;">
+      <div class="callout-icon">🎯</div>
+      <div>
+        <strong>学習の次のステップ：</strong><br>
+        TypeScript の組み込みジェネリック型（<code>Partial&lt;T&gt;</code>, <code>Required&lt;T&gt;</code>, <code>Pick&lt;T, K&gt;</code>,
+        <code>Omit&lt;T, K&gt;</code>, <code>ReturnType&lt;F&gt;</code>）を使いこなせると、より表現力の高い型が書けます。
+      </div>
+    </div>
+
+    <div class="callout callout-warn" style="margin-top: 0.5rem;">
+      <div class="callout-icon">⚠️</div>
+      <div>
+        <strong>やりすぎ注意：</strong>
+        ジェネリクスは強力ですが、型パラメータが 3〜4 個になると読みにくくなります。
+        実際のコードでは「<code>any</code> を避けるため」だけに使うのではなく、
+        <strong>「同じロジックを複数の型で再利用する必要があるとき」</strong>に使うのが適切な判断です。
+      </div>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>
