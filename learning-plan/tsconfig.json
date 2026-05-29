@@ -4,5 +4,5 @@
     "module": "commonjs",
     "strict": true
   },
-  "include": ["exercises/day3-tsexercises/**/*.ts"]
+  "include": ["exercises/day3-ts-extra-exercises/**/*.ts"]
 }
